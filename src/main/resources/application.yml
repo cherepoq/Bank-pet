@@ -16,6 +16,8 @@ server:
   port: 8080
 
 app:
+  security:
+    card-encryption-key: bankpet-demo-key-2026
   guardian:
     blocked-categories: BETTING,SCAM,GAMBLING
     risky-categories: GAMES,ALCOHOL,LUXURY,CRYPTO,OZON,WB,ВКУСНЯШКИ,CASINO

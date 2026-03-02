@@ -7,6 +7,7 @@ import ru.bankpet.entity.*;
 import ru.bankpet.repository.ClientRepository;
 import ru.bankpet.repository.PaymentTransactionRepository;
 import ru.bankpet.repository.SpendingFilterSettingsRepository;
+import ru.bankpet.service.CardDataProtectionService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,7 +18,8 @@ public class DemoDataInitializer {
     @Bean
     CommandLineRunner loadDemoData(ClientRepository clientRepository,
                                    PaymentTransactionRepository transactionRepository,
-                                   SpendingFilterSettingsRepository spendingFilterSettingsRepository) {
+                                   SpendingFilterSettingsRepository spendingFilterSettingsRepository,
+                                   CardDataProtectionService cardDataProtectionService) {
         return args -> {
             if (clientRepository.count() > 0) {
                 return;
@@ -36,13 +38,15 @@ public class DemoDataInitializer {
             Card debit = new Card();
             debit.setAccount(account);
             debit.setCardType("DEBIT");
-            debit.setMaskedPan("2202 **** **** 4321");
+            debit.setCardReference("CARD-DEBIT-001");
+            debit.setEncryptedPan(cardDataProtectionService.encrypt("78124567890"));
             account.getCards().add(debit);
 
             Card credit = new Card();
             credit.setAccount(account);
             credit.setCardType("CREDIT");
-            credit.setMaskedPan("2200 **** **** 6789");
+            credit.setCardReference("CARD-CREDIT-001");
+            credit.setEncryptedPan(cardDataProtectionService.encrypt("65987321456"));
             account.getCards().add(credit);
 
             DigitalRubleWallet wallet = new DigitalRubleWallet();

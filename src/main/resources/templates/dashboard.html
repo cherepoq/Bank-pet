@@ -24,6 +24,22 @@
 
     <div class="notice" th:if="${notice != null and !notice.isBlank()}" th:text="${notice}"></div>
 
+
+    <section class="summary-strip">
+        <div class="summary-item card-mini">
+            <span>Счёт</span>
+            <strong th:text="${dashboard.accountBalance} + ' ₽'"></strong>
+        </div>
+        <div class="summary-item card-mini" th:if="${!dashboard.cards.isEmpty()}">
+            <span>Карта</span>
+            <strong th:text="${dashboard.cards.get(0)}"></strong>
+        </div>
+        <div class="summary-item card-mini">
+            <span>Цифровой рубль</span>
+            <strong th:text="${dashboard.digitalRubleBalance} + ' ₽'"></strong>
+        </div>
+    </section>
+
     <div class="tabs">
         <button class="tab-btn active" data-tab="home">Главная</button>
         <button class="tab-btn" data-tab="payments">Платежи</button>

@@ -25,19 +25,22 @@ public class BankDashboardServiceImpl implements BankDashboardService {
     private final SpendingGuardianAgent guardianAgent;
     private final NfcPaymentGateway nfcPaymentGateway;
     private final ExternalBankHistorySyncService externalHistorySyncService;
+    private final CardDataProtectionService cardDataProtectionService;
 
     public BankDashboardServiceImpl(ClientRepository clientRepository,
                                     PaymentTransactionRepository transactionRepository,
                                     SpendingFilterSettingsRepository filterSettingsRepository,
                                     SpendingGuardianAgent guardianAgent,
                                     NfcPaymentGateway nfcPaymentGateway,
-                                    ExternalBankHistorySyncService externalHistorySyncService) {
+                                    ExternalBankHistorySyncService externalHistorySyncService,
+                                    CardDataProtectionService cardDataProtectionService) {
         this.clientRepository = clientRepository;
         this.transactionRepository = transactionRepository;
         this.filterSettingsRepository = filterSettingsRepository;
         this.guardianAgent = guardianAgent;
         this.nfcPaymentGateway = nfcPaymentGateway;
         this.externalHistorySyncService = externalHistorySyncService;
+        this.cardDataProtectionService = cardDataProtectionService;
     }
 
     @Override
@@ -237,7 +240,7 @@ public class BankDashboardServiceImpl implements BankDashboardService {
                 client.getDigitalRubleWallet().isLinked(),
                 settings.getAvoidedImpulseCount(),
                 settings.getAvoidedImpulseAmount(),
-                account.getCards().stream().map(Card::getMaskedPan).toList(),
+                account.getCards().stream().map(c -> c.getCardType() + " • " + cardDataProtectionService.decrypt(c.getEncryptedPan())).toList(),
                 transactions
         );
     }
