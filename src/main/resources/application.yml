@@ -19,3 +19,13 @@ app:
   guardian:
     blocked-categories: BETTING,SCAM,GAMBLING
     risky-categories: GAMES,ALCOHOL,LUXURY,CRYPTO
+
+# Для продакшена (пример):
+# spring:
+#   datasource:
+#     url: jdbc:postgresql://<host>:5432/bank_pet
+#     username: <user>
+#     password: <password>
+#   jpa:
+#     hibernate:
+#       ddl-auto: validate

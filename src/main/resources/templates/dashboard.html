@@ -68,6 +68,19 @@
             </ul>
         </div>
 
+
+        <div class="card full-width">
+            <h3>Настройки AI-фильтров трат</h3>
+            <form method="post" action="/app/filters" class="payment-form">
+                <label><input type="checkbox" name="llmAgentEnabled" th:checked="${filters.llmAgentEnabled}"/> LLM-агент включён</label>
+                <label><input type="checkbox" name="hardBlockEnabled" th:checked="${filters.hardBlockEnabled}"/> Жёсткая блокировка</label>
+                <input type="number" name="confirmationThreshold" step="0.01" min="1" th:value="${filters.confirmationThreshold}" placeholder="Порог подтверждения"/>
+                <input type="text" name="blockedCategoriesCsv" th:value="${filters.blockedCategoriesCsv}" placeholder="Блокируемые категории CSV"/>
+                <input type="text" name="riskyCategoriesCsv" th:value="${filters.riskyCategoriesCsv}" placeholder="Рискованные категории CSV"/>
+                <button type="submit">Сохранить фильтры</button>
+            </form>
+        </div>
+
         <div class="card full-width">
             <h3>Последние операции</h3>
             <ul class="trx-list">

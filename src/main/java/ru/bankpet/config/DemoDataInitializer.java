@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import ru.bankpet.entity.*;
 import ru.bankpet.repository.ClientRepository;
 import ru.bankpet.repository.PaymentTransactionRepository;
+import ru.bankpet.repository.SpendingFilterSettingsRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,7 +16,8 @@ public class DemoDataInitializer {
 
     @Bean
     CommandLineRunner loadDemoData(ClientRepository clientRepository,
-                                   PaymentTransactionRepository transactionRepository) {
+                                   PaymentTransactionRepository transactionRepository,
+                                   SpendingFilterSettingsRepository spendingFilterSettingsRepository) {
         return args -> {
             if (clientRepository.count() > 0) {
                 return;
@@ -50,6 +52,15 @@ public class DemoDataInitializer {
             client.setDigitalRubleWallet(wallet);
 
             clientRepository.save(client);
+
+            SpendingFilterSettings settings = new SpendingFilterSettings();
+            settings.setClient(client);
+            settings.setLlmAgentEnabled(true);
+            settings.setHardBlockEnabled(true);
+            settings.setConfirmationThreshold(new BigDecimal("50000.00"));
+            settings.setBlockedCategoriesCsv("BETTING,SCAM,GAMBLING");
+            settings.setRiskyCategoriesCsv("GAMES,ALCOHOL,LUXURY,CRYPTO");
+            spendingFilterSettingsRepository.save(settings);
 
             PaymentTransaction trx1 = new PaymentTransaction();
             trx1.setClient(client);

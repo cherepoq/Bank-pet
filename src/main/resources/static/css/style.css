@@ -1,33 +1,33 @@
 :root {
-    --bg: radial-gradient(circle at 15% 15%, #ffd600 0%, #ff5cc8 38%, #7a2eff 76%, #120018 100%);
-    --text: #f8f1ff;
-    --card-bg: rgba(20, 6, 34, 0.78);
-    --card-border: rgba(255, 255, 255, 0.15);
-    --accent: #ffe600;
-    --accent-2: #ff4cc7;
-    --btn-bg: linear-gradient(120deg, #ff3bb7, #ffd000);
-    --btn-text: #1f0229;
-    --danger-bg: linear-gradient(120deg, #ff4d4d, #ff8e3c);
-    --notice-bg: rgba(255, 219, 64, 0.2);
-    --notice-border: #ffd600;
-    --input-bg: rgba(255, 255, 255, 0.1);
-    --input-border: rgba(255, 255, 255, 0.25);
+    --bg: linear-gradient(180deg, #100014 0%, #2d0639 30%, #5a1a63 58%, #ff58b5 82%, #ffd84d 100%);
+    --text: #fff7ff;
+    --muted-text: #f6d6ff;
+    --card-bg: rgba(20, 6, 34, 0.84);
+    --card-border: rgba(255, 255, 255, 0.22);
+    --accent: #ffe04f;
+    --btn-bg: linear-gradient(120deg, #ff49bf, #ffd84d);
+    --btn-text: #2c0a36;
+    --danger-bg: linear-gradient(120deg, #ff4d4d, #ff9b39);
+    --notice-bg: rgba(255, 226, 87, 0.2);
+    --notice-border: #ffe04f;
+    --input-bg: rgba(255, 255, 255, 0.16);
+    --input-border: rgba(255, 255, 255, 0.35);
 }
 
 :root[data-theme='light'] {
-    --bg: linear-gradient(135deg, #fffaa6 0%, #ffb5e3 48%, #ffd56b 100%);
-    --text: #2b123a;
-    --card-bg: rgba(255, 255, 255, 0.78);
-    --card-border: rgba(255, 76, 199, 0.2);
-    --accent: #8d3bff;
-    --accent-2: #ff3bb7;
-    --btn-bg: linear-gradient(120deg, #ff2dad, #ffd200);
-    --btn-text: #2b123a;
-    --danger-bg: linear-gradient(120deg, #ff5e6c, #ffa43a);
-    --notice-bg: rgba(255, 219, 64, 0.35);
-    --notice-border: #ffbb00;
-    --input-bg: rgba(255, 255, 255, 0.8);
-    --input-border: rgba(255, 76, 199, 0.32);
+    --bg: linear-gradient(180deg, #3f2356 0%, #73417f 28%, #aa579f 56%, #ff86cb 82%, #ffe06d 100%);
+    --text: #fff6ff;
+    --muted-text: #ffe9ff;
+    --card-bg: rgba(60, 24, 75, 0.65);
+    --card-border: rgba(255, 255, 255, 0.3);
+    --accent: #fff18d;
+    --btn-bg: linear-gradient(120deg, #ff4abf, #ffe16f);
+    --btn-text: #3a1245;
+    --danger-bg: linear-gradient(120deg, #ff5e6c, #ffb04a);
+    --notice-bg: rgba(255, 240, 143, 0.25);
+    --notice-border: #ffe26b;
+    --input-bg: rgba(255, 255, 255, 0.18);
+    --input-border: rgba(255, 255, 255, 0.35);
 }
 
 * { box-sizing: border-box; }
@@ -41,43 +41,23 @@ body {
     min-height: 100vh;
 }
 
-.container {
-    width: min(1100px, 100%);
-    margin: 0 auto;
-    padding: 20px;
-}
+small, p { color: var(--muted-text); }
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.header-actions {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
+.container { width: min(1100px, 100%); margin: 0 auto; padding: 20px; }
+.header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+.header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
 
 .badge {
-    background: rgba(49, 255, 169, 0.2);
-    color: #8dffc8;
-    border: 1px solid rgba(141, 255, 200, 0.5);
+    background: rgba(49, 255, 169, 0.18);
+    color: #b8ffd9;
+    border: 1px solid rgba(184, 255, 217, 0.5);
     padding: 8px 12px;
     border-radius: 999px;
     font-size: 13px;
     font-weight: 700;
 }
 
-.theme-toggle {
-    background: rgba(255, 255, 255, 0.14);
-    color: var(--text);
-    border: 1px solid var(--card-border);
-}
+.theme-toggle { background: rgba(255, 255, 255, 0.18); color: var(--text); border: 1px solid var(--card-border); }
 
 .notice {
     background: var(--notice-bg);
@@ -86,14 +66,10 @@ body {
     border-radius: 10px;
     margin-bottom: 16px;
     backdrop-filter: blur(8px);
+    font-weight: 600;
 }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
-    gap: 16px;
-}
-
+.grid { display: grid; grid-template-columns: repeat(2, minmax(280px, 1fr)); gap: 16px; }
 .full-width { grid-column: 1 / -1; }
 
 .card {
@@ -101,34 +77,16 @@ body {
     border-radius: 16px;
     padding: 18px;
     border: 1px solid var(--card-border);
-    box-shadow: 0 10px 30px rgba(5, 0, 19, 0.35);
-    backdrop-filter: blur(8px);
+    box-shadow: 0 10px 30px rgba(5, 0, 19, 0.45);
+    backdrop-filter: blur(9px);
 }
 
-.accent {
-    border-color: rgba(255, 214, 0, 0.5);
-}
+.card h3, .card h2, h1 { color: #fff7a7; text-shadow: 0 0 10px rgba(255, 224, 109, 0.24); }
+.accent { border-color: rgba(255, 224, 79, 0.6); }
+.amount { font-size: clamp(24px, 5vw, 32px); font-weight: 700; margin: 6px 0; color: var(--accent); }
 
-.amount {
-    font-size: clamp(24px, 5vw, 32px);
-    font-weight: 700;
-    margin: 6px 0;
-    color: var(--accent);
-}
-
-.payment-form,
-.inline-form {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.payment-form input,
-.payment-form select,
-.inline-form input {
-    flex: 1;
-    min-width: 140px;
-}
+.payment-form, .inline-form { display: flex; gap: 8px; flex-wrap: wrap; }
+.payment-form input, .payment-form select, .inline-form input { flex: 1; min-width: 140px; }
 
 button {
     border: 0;
@@ -140,10 +98,7 @@ button {
     font-weight: 700;
 }
 
-button.danger {
-    background: var(--danger-bg);
-    color: #fff;
-}
+button.danger { background: var(--danger-bg); color: #fff; }
 
 input, select {
     border: 1px solid var(--input-border);
@@ -153,31 +108,14 @@ input, select {
     color: var(--text);
 }
 
+label { color: var(--text); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+
 .trx-list { list-style: none; margin: 0; padding: 0; }
+.trx-list li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--card-border); }
 
-.trx-list li {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--card-border);
-}
-
-.confirm-wrap {
-    min-height: 85vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
+.confirm-wrap { min-height: 85vh; display: flex; align-items: center; justify-content: center; }
 .confirm-card { max-width: 560px; width: 100%; }
-
-.confirm-actions {
-    margin-top: 16px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
+.confirm-actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
 
 @media (max-width: 900px) {
     .grid { grid-template-columns: 1fr; }

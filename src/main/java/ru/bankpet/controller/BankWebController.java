@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.bankpet.dto.PaymentDecisionDto;
 import ru.bankpet.dto.PaymentRequestDto;
+import ru.bankpet.dto.SpendingFilterSettingsDto;
 import ru.bankpet.repository.ClientRepository;
 import ru.bankpet.service.BankDashboardService;
 
@@ -28,6 +29,7 @@ public class BankWebController {
     public String dashboard(Model model, @ModelAttribute("notice") String notice) {
         UUID clientId = demoClientId();
         model.addAttribute("dashboard", service.getDashboard(clientId));
+        model.addAttribute("filters", service.getFilterSettings(clientId));
         model.addAttribute("clientId", clientId);
         model.addAttribute("notice", notice);
         return "dashboard";
@@ -65,6 +67,27 @@ public class BankWebController {
         }
 
         redirectAttributes.addFlashAttribute("notice", result.message());
+        return "redirect:/app";
+    }
+
+    @PostMapping("/filters")
+    public String updateFilters(@RequestParam(defaultValue = "false") boolean llmAgentEnabled,
+                                @RequestParam(defaultValue = "false") boolean hardBlockEnabled,
+                                @RequestParam BigDecimal confirmationThreshold,
+                                @RequestParam String blockedCategoriesCsv,
+                                @RequestParam String riskyCategoriesCsv,
+                                RedirectAttributes redirectAttributes) {
+        service.updateFilterSettings(
+                demoClientId(),
+                new SpendingFilterSettingsDto(
+                        llmAgentEnabled,
+                        hardBlockEnabled,
+                        confirmationThreshold,
+                        blockedCategoriesCsv,
+                        riskyCategoriesCsv
+                )
+        );
+        redirectAttributes.addFlashAttribute("notice", "Настройки фильтров сохранены.");
         return "redirect:/app";
     }
 

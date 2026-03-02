@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.bankpet.dto.BankDashboardDto;
 import ru.bankpet.dto.PaymentDecisionDto;
 import ru.bankpet.dto.PaymentRequestDto;
+import ru.bankpet.dto.SpendingFilterSettingsDto;
 import ru.bankpet.service.BankDashboardService;
 
 import java.math.BigDecimal;
@@ -41,5 +42,16 @@ public class BankApiController {
     public PaymentDecisionDto processPayment(@PathVariable UUID clientId,
                                              @Valid @RequestBody PaymentRequestDto request) {
         return dashboardService.processPayment(clientId, request);
+    }
+
+    @GetMapping("/spending-filters")
+    public SpendingFilterSettingsDto getSpendingFilters(@PathVariable UUID clientId) {
+        return dashboardService.getFilterSettings(clientId);
+    }
+
+    @PutMapping("/spending-filters")
+    public SpendingFilterSettingsDto updateSpendingFilters(@PathVariable UUID clientId,
+                                                            @Valid @RequestBody SpendingFilterSettingsDto request) {
+        return dashboardService.updateFilterSettings(clientId, request);
     }
 }

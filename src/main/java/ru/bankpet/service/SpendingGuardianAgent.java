@@ -1,40 +1,63 @@
 package ru.bankpet.service;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class SpendingGuardianAgent {
 
-    private final List<String> blockedCategories;
-    private final List<String> riskyCategories;
+    private final LlmSpendingAdvisor llmSpendingAdvisor;
 
-    public SpendingGuardianAgent(
-            @Value("${app.guardian.blocked-categories}") List<String> blockedCategories,
-            @Value("${app.guardian.risky-categories}") List<String> riskyCategories
-    ) {
-        this.blockedCategories = blockedCategories;
-        this.riskyCategories = riskyCategories;
+    public SpendingGuardianAgent(LlmSpendingAdvisor llmSpendingAdvisor) {
+        this.llmSpendingAdvisor = llmSpendingAdvisor;
     }
 
-    public GuardianDecision evaluate(String category, BigDecimal amount, Boolean confirmedByUser) {
+    public GuardianDecision evaluate(String title, String category, BigDecimal amount, Boolean confirmedByUser,
+                                     GuardianPreferences preferences) {
         String normalizedCategory = category.trim().toUpperCase();
-        if (blockedCategories.contains(normalizedCategory)) {
+        Set<String> blocked = csvToSet(preferences.blockedCategoriesCsv());
+        Set<String> risky = csvToSet(preferences.riskyCategoriesCsv());
+
+        if (preferences.hardBlockEnabled() && blocked.contains(normalizedCategory)) {
             return new GuardianDecision("REJECTED", "Финансовый ИИ-агент: траты на категорию '" + category + "' заблокированы.");
         }
 
-        boolean risky = riskyCategories.contains(normalizedCategory) || amount.compareTo(new BigDecimal("50000")) > 0;
-        if (risky && !Boolean.TRUE.equals(confirmedByUser)) {
+        boolean riskyByCategory = risky.contains(normalizedCategory);
+        boolean riskyByAmount = amount.compareTo(preferences.confirmationThreshold()) > 0;
+        boolean riskyByLlm = false;
+        String llmComment = "";
+
+        if (preferences.llmAgentEnabled()) {
+            LlmSpendingAdvisor.Advice advice = llmSpendingAdvisor.analyze(title, category, amount);
+            riskyByLlm = advice.riskScore() >= 65;
+            llmComment = " " + advice.explanation() + " Риск: " + advice.riskScore() + "/100.";
+        }
+
+        if ((riskyByCategory || riskyByAmount || riskyByLlm) && !Boolean.TRUE.equals(confirmedByUser)) {
             return new GuardianDecision("NEEDS_CONFIRMATION",
-                    "ИИ-агент: похоже на импульсивную/рискованную трату. Подтвердите оплату.");
+                    "ИИ-агент: похоже на рискованную трату. Подтвердите оплату." + llmComment);
         }
 
         return new GuardianDecision("APPROVED", "Платёж одобрен.");
     }
 
-    public record GuardianDecision(String status, String message) {
+    private Set<String> csvToSet(String csv) {
+        return Arrays.stream(csv.split(","))
+                .map(String::trim)
+                .map(String::toUpperCase)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toSet());
     }
+
+    public record GuardianPreferences(boolean llmAgentEnabled,
+                                      boolean hardBlockEnabled,
+                                      BigDecimal confirmationThreshold,
+                                      String blockedCategoriesCsv,
+                                      String riskyCategoriesCsv) {}
+
+    public record GuardianDecision(String status, String message) {}
 }

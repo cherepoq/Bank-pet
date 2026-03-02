@@ -5,14 +5,12 @@ import org.springframework.stereotype.Service;
 import ru.bankpet.dto.BankDashboardDto;
 import ru.bankpet.dto.PaymentDecisionDto;
 import ru.bankpet.dto.PaymentRequestDto;
+import ru.bankpet.dto.SpendingFilterSettingsDto;
 import ru.bankpet.dto.TransactionDto;
-import ru.bankpet.entity.Account;
-import ru.bankpet.entity.Card;
-import ru.bankpet.entity.Client;
-import ru.bankpet.entity.DigitalRubleWallet;
-import ru.bankpet.entity.PaymentTransaction;
+import ru.bankpet.entity.*;
 import ru.bankpet.repository.ClientRepository;
 import ru.bankpet.repository.PaymentTransactionRepository;
+import ru.bankpet.repository.SpendingFilterSettingsRepository;
 import ru.bankpet.service.BankDashboardService;
 import ru.bankpet.service.SpendingGuardianAgent;
 
@@ -28,13 +26,16 @@ public class BankDashboardServiceImpl implements BankDashboardService {
 
     private final ClientRepository clientRepository;
     private final PaymentTransactionRepository transactionRepository;
+    private final SpendingFilterSettingsRepository filterSettingsRepository;
     private final SpendingGuardianAgent guardianAgent;
 
     public BankDashboardServiceImpl(ClientRepository clientRepository,
                                     PaymentTransactionRepository transactionRepository,
+                                    SpendingFilterSettingsRepository filterSettingsRepository,
                                     SpendingGuardianAgent guardianAgent) {
         this.clientRepository = clientRepository;
         this.transactionRepository = transactionRepository;
+        this.filterSettingsRepository = filterSettingsRepository;
         this.guardianAgent = guardianAgent;
     }
 
@@ -79,9 +80,21 @@ public class BankDashboardServiceImpl implements BankDashboardService {
     public PaymentDecisionDto processPayment(UUID clientId, PaymentRequestDto request) {
         Client client = getClient(clientId);
         Account account = client.getAccounts().getFirst();
+        SpendingFilterSettings settings = getOrCreateSettings(client);
 
-        SpendingGuardianAgent.GuardianDecision decision =
-                guardianAgent.evaluate(request.category(), request.amount(), request.confirmedByUser());
+        SpendingGuardianAgent.GuardianDecision decision = guardianAgent.evaluate(
+                request.title(),
+                request.category(),
+                request.amount(),
+                request.confirmedByUser(),
+                new SpendingGuardianAgent.GuardianPreferences(
+                        settings.isLlmAgentEnabled(),
+                        settings.isHardBlockEnabled(),
+                        settings.getConfirmationThreshold(),
+                        settings.getBlockedCategoriesCsv(),
+                        settings.getRiskyCategoriesCsv()
+                )
+        );
 
         if (!"APPROVED".equals(decision.status())) {
             return new PaymentDecisionDto(decision.status(), decision.message());
@@ -95,6 +108,47 @@ public class BankDashboardServiceImpl implements BankDashboardService {
         saveTransaction(client, request.title(), request.amount().negate(), "CARD", request.category());
 
         return new PaymentDecisionDto("APPROVED", "Платёж выполнен успешно.");
+    }
+
+    @Override
+    public SpendingFilterSettingsDto getFilterSettings(UUID clientId) {
+        SpendingFilterSettings settings = getOrCreateSettings(getClient(clientId));
+        return toSettingsDto(settings);
+    }
+
+    @Override
+    public SpendingFilterSettingsDto updateFilterSettings(UUID clientId, SpendingFilterSettingsDto request) {
+        SpendingFilterSettings settings = getOrCreateSettings(getClient(clientId));
+        settings.setLlmAgentEnabled(request.llmAgentEnabled());
+        settings.setHardBlockEnabled(request.hardBlockEnabled());
+        settings.setConfirmationThreshold(request.confirmationThreshold());
+        settings.setBlockedCategoriesCsv(request.blockedCategoriesCsv());
+        settings.setRiskyCategoriesCsv(request.riskyCategoriesCsv());
+        filterSettingsRepository.save(settings);
+        return toSettingsDto(settings);
+    }
+
+    private SpendingFilterSettingsDto toSettingsDto(SpendingFilterSettings settings) {
+        return new SpendingFilterSettingsDto(
+                settings.isLlmAgentEnabled(),
+                settings.isHardBlockEnabled(),
+                settings.getConfirmationThreshold(),
+                settings.getBlockedCategoriesCsv(),
+                settings.getRiskyCategoriesCsv()
+        );
+    }
+
+    private SpendingFilterSettings getOrCreateSettings(Client client) {
+        return filterSettingsRepository.findByClientId(client.getId()).orElseGet(() -> {
+            SpendingFilterSettings settings = new SpendingFilterSettings();
+            settings.setClient(client);
+            settings.setLlmAgentEnabled(true);
+            settings.setHardBlockEnabled(true);
+            settings.setConfirmationThreshold(new BigDecimal("50000.00"));
+            settings.setBlockedCategoriesCsv("BETTING,SCAM,GAMBLING");
+            settings.setRiskyCategoriesCsv("GAMES,ALCOHOL,LUXURY,CRYPTO");
+            return filterSettingsRepository.save(settings);
+        });
     }
 
     private void saveTransaction(Client client, String title, BigDecimal amount, String sourceType, String category) {
