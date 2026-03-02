@@ -3,13 +3,11 @@ package ru.bankpet.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import org.springframework.web.bind.annotation.*;
-import ru.bankpet.dto.BankDashboardDto;
-import ru.bankpet.dto.PaymentDecisionDto;
-import ru.bankpet.dto.PaymentRequestDto;
-import ru.bankpet.dto.SpendingFilterSettingsDto;
+import ru.bankpet.dto.*;
 import ru.bankpet.service.BankDashboardService;
 
 import java.math.BigDecimal;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -42,6 +40,18 @@ public class BankApiController {
     public PaymentDecisionDto processPayment(@PathVariable UUID clientId,
                                              @Valid @RequestBody PaymentRequestDto request) {
         return dashboardService.processPayment(clientId, request);
+    }
+
+    @PostMapping("/payments/nfc")
+    public PaymentDecisionDto processNfcPayment(@PathVariable UUID clientId,
+                                                @Valid @RequestBody NfcPurchaseRequestDto request) {
+        return dashboardService.processNfcPayment(clientId, request);
+    }
+
+    @PostMapping("/history/sync")
+    public Map<String, Object> syncHistory(@PathVariable UUID clientId) {
+        int synced = dashboardService.syncExternalHistory(clientId);
+        return Map.of("status", "OK", "synced", synced);
     }
 
     @GetMapping("/spending-filters")

@@ -1,9 +1,6 @@
 package ru.bankpet.service;
 
-import ru.bankpet.dto.BankDashboardDto;
-import ru.bankpet.dto.PaymentDecisionDto;
-import ru.bankpet.dto.PaymentRequestDto;
-import ru.bankpet.dto.SpendingFilterSettingsDto;
+import ru.bankpet.dto.*;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -17,6 +14,10 @@ public interface BankDashboardService {
     BankDashboardDto linkDigitalRuble(UUID clientId);
 
     PaymentDecisionDto processPayment(UUID clientId, PaymentRequestDto request);
+
+    PaymentDecisionDto processNfcPayment(UUID clientId, NfcPurchaseRequestDto request);
+
+    int syncExternalHistory(UUID clientId);
 
     SpendingFilterSettingsDto getFilterSettings(UUID clientId);
 

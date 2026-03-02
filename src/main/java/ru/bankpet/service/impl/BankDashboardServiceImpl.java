@@ -2,17 +2,12 @@ package ru.bankpet.service.impl;
 
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import ru.bankpet.dto.BankDashboardDto;
-import ru.bankpet.dto.PaymentDecisionDto;
-import ru.bankpet.dto.PaymentRequestDto;
-import ru.bankpet.dto.SpendingFilterSettingsDto;
-import ru.bankpet.dto.TransactionDto;
+import ru.bankpet.dto.*;
 import ru.bankpet.entity.*;
 import ru.bankpet.repository.ClientRepository;
 import ru.bankpet.repository.PaymentTransactionRepository;
 import ru.bankpet.repository.SpendingFilterSettingsRepository;
-import ru.bankpet.service.BankDashboardService;
-import ru.bankpet.service.SpendingGuardianAgent;
+import ru.bankpet.service.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,15 +23,21 @@ public class BankDashboardServiceImpl implements BankDashboardService {
     private final PaymentTransactionRepository transactionRepository;
     private final SpendingFilterSettingsRepository filterSettingsRepository;
     private final SpendingGuardianAgent guardianAgent;
+    private final NfcPaymentGateway nfcPaymentGateway;
+    private final ExternalBankHistorySyncService externalHistorySyncService;
 
     public BankDashboardServiceImpl(ClientRepository clientRepository,
                                     PaymentTransactionRepository transactionRepository,
                                     SpendingFilterSettingsRepository filterSettingsRepository,
-                                    SpendingGuardianAgent guardianAgent) {
+                                    SpendingGuardianAgent guardianAgent,
+                                    NfcPaymentGateway nfcPaymentGateway,
+                                    ExternalBankHistorySyncService externalHistorySyncService) {
         this.clientRepository = clientRepository;
         this.transactionRepository = transactionRepository;
         this.filterSettingsRepository = filterSettingsRepository;
         this.guardianAgent = guardianAgent;
+        this.nfcPaymentGateway = nfcPaymentGateway;
+        this.externalHistorySyncService = externalHistorySyncService;
     }
 
     @Override
@@ -78,36 +79,38 @@ public class BankDashboardServiceImpl implements BankDashboardService {
 
     @Override
     public PaymentDecisionDto processPayment(UUID clientId, PaymentRequestDto request) {
-        Client client = getClient(clientId);
-        Account account = client.getAccounts().getFirst();
-        SpendingFilterSettings settings = getOrCreateSettings(client);
+        return processPaymentInternal(clientId, request.title(), request.amount(), request.category(), request.confirmedByUser(), "CARD");
+    }
 
-        SpendingGuardianAgent.GuardianDecision decision = guardianAgent.evaluate(
-                request.title(),
-                request.category(),
+    @Override
+    public PaymentDecisionDto processNfcPayment(UUID clientId, NfcPurchaseRequestDto request) {
+        NfcPaymentGateway.NfcAuthorization auth = nfcPaymentGateway.authorize(request);
+        if (!auth.approved()) {
+            return new PaymentDecisionDto("REJECTED", "HARD", auth.message());
+        }
+
+        return processPaymentInternal(
+                clientId,
+                "NFC: " + request.merchant(),
                 request.amount(),
+                request.category(),
                 request.confirmedByUser(),
-                new SpendingGuardianAgent.GuardianPreferences(
-                        settings.isLlmAgentEnabled(),
-                        settings.isHardBlockEnabled(),
-                        settings.getConfirmationThreshold(),
-                        settings.getBlockedCategoriesCsv(),
-                        settings.getRiskyCategoriesCsv()
-                )
+                "NFC"
         );
+    }
 
-        if (!"APPROVED".equals(decision.status())) {
-            return new PaymentDecisionDto(decision.status(), decision.message());
-        }
-
-        if (account.getBalance().compareTo(request.amount()) < 0) {
-            return new PaymentDecisionDto("REJECTED", "Недостаточно средств на счёте.");
-        }
-
-        account.setBalance(account.getBalance().subtract(request.amount()));
-        saveTransaction(client, request.title(), request.amount().negate(), "CARD", request.category());
-
-        return new PaymentDecisionDto("APPROVED", "Платёж выполнен успешно.");
+    @Override
+    public int syncExternalHistory(UUID clientId) {
+        Client client = getClient(clientId);
+        List<ExternalTransactionDto> externalTransactions = externalHistorySyncService.pullLatest();
+        externalTransactions.forEach(t -> saveTransaction(
+                client,
+                "Импорт: " + t.title() + " [" + t.sourceBank() + "]",
+                t.amount(),
+                "OPEN_BANKING",
+                t.category()
+        ));
+        return externalTransactions.size();
     }
 
     @Override
@@ -128,6 +131,40 @@ public class BankDashboardServiceImpl implements BankDashboardService {
         return toSettingsDto(settings);
     }
 
+    private PaymentDecisionDto processPaymentInternal(UUID clientId, String title, BigDecimal amount,
+                                                      String category, Boolean confirmedByUser, String sourceType) {
+        Client client = getClient(clientId);
+        Account account = client.getAccounts().getFirst();
+        SpendingFilterSettings settings = getOrCreateSettings(client);
+
+        SpendingGuardianAgent.GuardianDecision decision = guardianAgent.evaluate(
+                title,
+                category,
+                amount,
+                confirmedByUser,
+                new SpendingGuardianAgent.GuardianPreferences(
+                        settings.isLlmAgentEnabled(),
+                        settings.isHardBlockEnabled(),
+                        settings.getConfirmationThreshold(),
+                        settings.getBlockedCategoriesCsv(),
+                        settings.getRiskyCategoriesCsv()
+                )
+        );
+
+        if (!"APPROVED".equals(decision.status())) {
+            return new PaymentDecisionDto(decision.status(), decision.severity(), decision.message());
+        }
+
+        if (account.getBalance().compareTo(amount) < 0) {
+            return new PaymentDecisionDto("REJECTED", "HARD", "Недостаточно средств на счёте.");
+        }
+
+        account.setBalance(account.getBalance().subtract(amount));
+        saveTransaction(client, title, amount.negate(), sourceType, category);
+
+        return new PaymentDecisionDto("APPROVED", decision.severity(), "Платёж выполнен успешно.");
+    }
+
     private SpendingFilterSettingsDto toSettingsDto(SpendingFilterSettings settings) {
         return new SpendingFilterSettingsDto(
                 settings.isLlmAgentEnabled(),
@@ -146,7 +183,7 @@ public class BankDashboardServiceImpl implements BankDashboardService {
             settings.setHardBlockEnabled(true);
             settings.setConfirmationThreshold(new BigDecimal("50000.00"));
             settings.setBlockedCategoriesCsv("BETTING,SCAM,GAMBLING");
-            settings.setRiskyCategoriesCsv("GAMES,ALCOHOL,LUXURY,CRYPTO");
+            settings.setRiskyCategoriesCsv("GAMES,ALCOHOL,LUXURY,CRYPTO,OZON,WB,ВКУСНЯШКИ");
             return filterSettingsRepository.save(settings);
         });
     }
@@ -172,7 +209,7 @@ public class BankDashboardServiceImpl implements BankDashboardService {
         List<TransactionDto> transactions = transactionRepository.findAll().stream()
                 .filter(t -> t.getClient().getId().equals(client.getId()))
                 .sorted(Comparator.comparing(PaymentTransaction::getCreatedAt).reversed())
-                .limit(5)
+                .limit(8)
                 .map(t -> new TransactionDto(t.getTitle(), t.getAmount(), t.getCreatedAt(), t.getSourceType(), t.getCategory()))
                 .toList();
 

@@ -44,20 +44,24 @@
         </div>
 
         <div class="card payment-card">
-            <h3>Новый платёж</h3>
-            <form method="post" action="/app/pay" class="payment-form">
-                <input name="title" required placeholder="Название платежа (например, iPhone 16)"/>
+            <h3>NFC-оплата (эмуляция терминала)</h3>
+            <form method="post" action="/app/nfc/pay" class="payment-form">
+                <input name="merchant" required placeholder="Мерчант (например, OZON)"/>
                 <input type="number" name="amount" required step="0.01" min="1" placeholder="Сумма"/>
                 <select name="category" required>
-                    <option value="SHOPPING">SHOPPING</option>
+                    <option value="OZON">OZON</option>
+                    <option value="WB">WB</option>
+                    <option value="ВКУСНЯШКИ">ВКУСНЯШКИ</option>
                     <option value="GAMES">GAMES</option>
                     <option value="BETTING">BETTING</option>
                     <option value="ALCOHOL">ALCOHOL</option>
                     <option value="CRYPTO">CRYPTO</option>
-                    <option value="TRAVEL">TRAVEL</option>
-                    <option value="EDUCATION">EDUCATION</option>
                 </select>
-                <button type="submit">Оплатить с проверкой ИИ</button>
+                <input name="deviceToken" value="demo-nfc-token" placeholder="NFC token"/>
+                <button type="submit">Оплатить по NFC</button>
+            </form>
+            <form method="post" action="/app/sync-history" class="inline-form" style="margin-top:8px;">
+                <button type="submit">Подтянуть историю из других банков</button>
             </form>
         </div>
 
@@ -68,24 +72,24 @@
             </ul>
         </div>
 
-
         <div class="card full-width">
-            <h3>Настройки AI-фильтров трат</h3>
+            <h3>Понятные настройки AI-защиты</h3>
             <form method="post" action="/app/filters" class="payment-form">
-                <label><input type="checkbox" name="llmAgentEnabled" th:checked="${filters.llmAgentEnabled}"/> LLM-агент включён</label>
-                <label><input type="checkbox" name="hardBlockEnabled" th:checked="${filters.hardBlockEnabled}"/> Жёсткая блокировка</label>
-                <input type="number" name="confirmationThreshold" step="0.01" min="1" th:value="${filters.confirmationThreshold}" placeholder="Порог подтверждения"/>
-                <input type="text" name="blockedCategoriesCsv" th:value="${filters.blockedCategoriesCsv}" placeholder="Блокируемые категории CSV"/>
-                <input type="text" name="riskyCategoriesCsv" th:value="${filters.riskyCategoriesCsv}" placeholder="Рискованные категории CSV"/>
-                <button type="submit">Сохранить фильтры</button>
+                <label><input type="checkbox" name="llmAgentEnabled" th:checked="${filters.llmAgentEnabled}"/> Анализировать траты LLM-агентом</label>
+                <label><input type="checkbox" name="hardBlockEnabled" th:checked="${filters.hardBlockEnabled}"/> Полностью блокировать запрещенные категории</label>
+                <input type="number" name="confirmationThreshold" step="0.01" min="1" th:value="${filters.confirmationThreshold}" placeholder="Сумма, с которой нужно подтверждение"/>
+                <input type="text" name="blockedCategoriesCsv" th:value="${filters.blockedCategoriesCsv}" placeholder="Что блокируем (через запятую)"/>
+                <input type="text" name="riskyCategoriesCsv" th:value="${filters.riskyCategoriesCsv}" placeholder="Что считаем рискованным"/>
+                <button type="submit">Сохранить настройки защиты</button>
             </form>
+            <small>Степени реакции агента: SOFT (мягко), MEDIUM (строже), HARD (жесткая блокировка).</small>
         </div>
 
         <div class="card full-width">
             <h3>Последние операции</h3>
             <ul class="trx-list">
                 <li th:each="trx : ${dashboard.recentTransactions}">
-                    <span th:text="${trx.title} + ' (' + ${trx.category} + ')' "></span>
+                    <span th:text="${trx.title} + ' (' + ${trx.category} + ', ' + ${trx.sourceType} + ')' "></span>
                     <strong th:text="${trx.amount} + ' ₽'"></strong>
                 </li>
             </ul>

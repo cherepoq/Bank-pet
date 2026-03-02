@@ -23,26 +23,37 @@ public class SpendingGuardianAgent {
         Set<String> risky = csvToSet(preferences.riskyCategoriesCsv());
 
         if (preferences.hardBlockEnabled() && blocked.contains(normalizedCategory)) {
-            return new GuardianDecision("REJECTED", "Финансовый ИИ-агент: траты на категорию '" + category + "' заблокированы.");
+            return new GuardianDecision("REJECTED", "HARD", "🚫 Жёсткий стоп: эту категорию мы блокируем без вариантов.");
         }
 
         boolean riskyByCategory = risky.contains(normalizedCategory);
         boolean riskyByAmount = amount.compareTo(preferences.confirmationThreshold()) > 0;
-        boolean riskyByLlm = false;
+        int llmRisk = 0;
         String llmComment = "";
 
         if (preferences.llmAgentEnabled()) {
             LlmSpendingAdvisor.Advice advice = llmSpendingAdvisor.analyze(title, category, amount);
-            riskyByLlm = advice.riskScore() >= 65;
+            llmRisk = advice.riskScore();
             llmComment = " " + advice.explanation() + " Риск: " + advice.riskScore() + "/100.";
         }
 
-        if ((riskyByCategory || riskyByAmount || riskyByLlm) && !Boolean.TRUE.equals(confirmedByUser)) {
-            return new GuardianDecision("NEEDS_CONFIRMATION",
-                    "ИИ-агент: похоже на рискованную трату. Подтвердите оплату." + llmComment);
+        int totalRisk = Math.max(llmRisk, riskyByCategory ? 70 : 0);
+        if (riskyByAmount) totalRisk = Math.max(totalRisk, 75);
+
+        if (totalRisk >= 85 && !Boolean.TRUE.equals(confirmedByUser)) {
+            return new GuardianDecision("NEEDS_CONFIRMATION", "HARD",
+                    "⛔ Это очень сомнительная трата. Я настоятельно не рекомендую оплачивать." + llmComment);
+        }
+        if (totalRisk >= 65 && !Boolean.TRUE.equals(confirmedByUser)) {
+            return new GuardianDecision("NEEDS_CONFIRMATION", "MEDIUM",
+                    "⚠ Похоже на импульсивную покупку. Подтвердите, если точно нужно." + llmComment);
+        }
+        if (totalRisk >= 45 && !Boolean.TRUE.equals(confirmedByUser)) {
+            return new GuardianDecision("NEEDS_CONFIRMATION", "SOFT",
+                    "🙂 Небольшое предупреждение: проверьте, точно ли хотите эту покупку." + llmComment);
         }
 
-        return new GuardianDecision("APPROVED", "Платёж одобрен.");
+        return new GuardianDecision("APPROVED", "SOFT", "✅ Платёж одобрен.");
     }
 
     private Set<String> csvToSet(String csv) {
@@ -59,5 +70,5 @@ public class SpendingGuardianAgent {
                                       String blockedCategoriesCsv,
                                       String riskyCategoriesCsv) {}
 
-    public record GuardianDecision(String status, String message) {}
+    public record GuardianDecision(String status, String severity, String message) {}
 }

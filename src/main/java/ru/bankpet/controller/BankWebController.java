@@ -4,6 +4,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import ru.bankpet.dto.NfcPurchaseRequestDto;
 import ru.bankpet.dto.PaymentDecisionDto;
 import ru.bankpet.dto.PaymentRequestDto;
 import ru.bankpet.dto.SpendingFilterSettingsDto;
@@ -57,16 +58,25 @@ public class BankWebController {
                       Model model) {
         PaymentRequestDto request = new PaymentRequestDto(title, amount, category, null);
         PaymentDecisionDto result = service.processPayment(demoClientId(), request);
+        return handleDecision(title, amount, category, result, redirectAttributes, model);
+    }
 
-        if ("NEEDS_CONFIRMATION".equals(result.status())) {
-            model.addAttribute("confirmTitle", title);
-            model.addAttribute("confirmAmount", amount);
-            model.addAttribute("confirmCategory", category);
-            model.addAttribute("confirmMessage", result.message());
-            return "payment-confirm";
-        }
+    @PostMapping("/nfc/pay")
+    public String nfcPay(@RequestParam String merchant,
+                         @RequestParam BigDecimal amount,
+                         @RequestParam String category,
+                         @RequestParam(defaultValue = "demo-nfc-token") String deviceToken,
+                         RedirectAttributes redirectAttributes,
+                         Model model) {
+        NfcPurchaseRequestDto request = new NfcPurchaseRequestDto(merchant, amount, category, deviceToken, null);
+        PaymentDecisionDto result = service.processNfcPayment(demoClientId(), request);
+        return handleDecision("NFC: " + merchant, amount, category, result, redirectAttributes, model);
+    }
 
-        redirectAttributes.addFlashAttribute("notice", result.message());
+    @PostMapping("/sync-history")
+    public String syncHistory(RedirectAttributes redirectAttributes) {
+        int synced = service.syncExternalHistory(demoClientId());
+        redirectAttributes.addFlashAttribute("notice", "История из внешних банков синхронизирована: " + synced + " операций.");
         return "redirect:/app";
     }
 
@@ -100,6 +110,22 @@ public class BankWebController {
         PaymentRequestDto request = new PaymentRequestDto(title, amount, category, confirmed);
         PaymentDecisionDto result = service.processPayment(demoClientId(), request);
         redirectAttributes.addFlashAttribute("notice", result.message());
+        return "redirect:/app";
+    }
+
+    private String handleDecision(String title, BigDecimal amount, String category,
+                                  PaymentDecisionDto result,
+                                  RedirectAttributes redirectAttributes,
+                                  Model model) {
+        if ("NEEDS_CONFIRMATION".equals(result.status())) {
+            model.addAttribute("confirmTitle", title);
+            model.addAttribute("confirmAmount", amount);
+            model.addAttribute("confirmCategory", category);
+            model.addAttribute("confirmMessage", result.message());
+            model.addAttribute("confirmSeverity", result.severity());
+            return "payment-confirm";
+        }
+        redirectAttributes.addFlashAttribute("notice", "[" + result.severity() + "] " + result.message());
         return "redirect:/app";
     }
 

@@ -3,64 +3,81 @@
 Полноценный демо-банк на Spring Boot для собеседований уровня Middle Java:
 - клиент, счета, карты, транзакции;
 - отдельный кошелёк цифрового рубля;
-- AI Spending Guardian + LLM-анализ риска по назначению платежа;
-- гибкие пользовательские фильтры трат;
+- AI Spending Guardian + LLM-анализ риска;
+- NFC-платежи (через интеграционный gateway-слой);
+- синхронизация истории из внешних банков (верхний интеграционный слой);
 - REST API + Web UI (Thymeleaf);
-- Docker + Render для публичного доступа в интернете.
+- Docker + Render для публичного доступа.
 
-## Что улучшено сейчас
-- Контрастность текста увеличена.
-- Фон сделан **темнее сверху и светлее снизу** (как просили).
-- Добавлена форма настройки фильтров трат прямо в UI.
-- LLM-агент включается/выключается в фильтрах.
+## Что сделано по последнему фидбеку
+- Убрана лишняя надпись про контраст.
+- Настройки AI-фильтров сделаны более понятными (человеческие формулировки).
+- Добавлены категории: `OZON`, `WB`, `ВКУСНЯШКИ`.
+- Добавлены уровни ругательств/реакций агента: `SOFT`, `MEDIUM`, `HARD`.
+- Вместо обычного “ручного платежа” в UI вынесен сценарий `NFC-оплаты` + кнопка подтягивания истории из других банков.
 
-## Почему Spring мог не подниматься у тебя
-В этой среде `mvn test`/`mvn spring-boot:run` падает не из-за кода, а из-за сети к Maven Central:
-- ошибка: `Non-resolvable parent POM ... spring-boot-starter-parent ... 403 Forbidden`.
+## Архитектура интеграций (важно)
+### 1) NFC-оплата
+- `NfcPaymentGateway` — изолированный интеграционный слой (anti-corruption layer).
+- Сейчас в демо: mock-проверка токена устройства.
+- В проде: подключение к токенизированной платежной шине/процессингу, 3DS/Device binding, антифрод.
 
-То есть зависимости Spring Boot не скачиваются. На локальной машине обычно лечится так:
+### 2) Подтягивание истории из других банков
+- `ExternalBankHistorySyncService` — верхний слой синхронизации истории.
+- Сейчас в демо: mock-провайдер транзакций.
+- В проде: Open Banking API, OAuth2 consent, пагинация, дедупликация, аудит.
+
+### 3) Агент решений по тратам
+- `SpendingGuardianAgent` принимает решение с учетом:
+  - пользовательских фильтров,
+  - категории,
+  - суммы,
+  - LLM-риск-оценки,
+  - подтверждения пользователя.
+- `LlmSpendingAdvisor` сейчас эвристический (как заглушка LLM).
+
+## Какого агента подключать в реальности
+Рекомендуемый вариант:
+1. **Policy Agent (обязательный слой)** — deterministic правила + лимиты + категории + комплаенс.
+2. **LLM Advisor (вспомогательный слой)** — объяснение риска и NLP-анализ назначения платежа.
+3. Итоговое решение принимает Policy слой, а не LLM (чтобы было контролируемо и объяснимо).
+
+Технически в Spring:
+- `PolicyEngineService` + `LlmRiskService` + `DecisionOrchestratorService`.
+- Логирование каждого решения + reason codes.
+
+## Почему Spring может “не подниматься”
+Если ошибка типа:
+`Non-resolvable parent POM ... spring-boot-starter-parent ... 403 Forbidden`
+— это не баг бизнес-логики, а проблема доступа к Maven Central.
+
+Что делать:
 1. Проверить доступ к `https://repo.maven.apache.org/maven2`.
-2. Отключить корпоративный proxy/VPN, или правильно настроить `~/.m2/settings.xml`.
-3. Очистить кэш и скачать заново: `mvn -U clean package`.
-4. Если нужно, зеркалировать репозиторий через Nexus/Artifactory.
+2. Проверить proxy/VPN/корп.файрвол.
+3. Настроить `~/.m2/settings.xml` (mirror/repo credentials).
+4. `mvn -U clean package`.
 
-## Как реализовано подключение цифрового рубля
-В демо-проекте это внутренний кошелёк `DigitalRubleWallet`, связанный 1:1 с клиентом:
-1. endpoint `/digital-ruble/link` выставляет `linked=true`;
-2. `/digital-ruble/top-up` переводит деньги с обычного рублёвого счёта на кошелёк;
-3. транзакция пишется в историю как отдельная операция.
+## Цифровой рубль: как подключать по-взрослому
+Сейчас: внутренний кошелек и операции `link` / `top-up`.
 
-Для реальной интеграции с внешним провайдером/ЦБ:
-- добавляется адаптер (Spring `@Service` + `WebClient`) к внешнему API;
-- вводятся статусы синхронизации, idempotency keys, retries и аудит;
-- хранится внешний wallet/account id и статусы операций.
+Прод-версия:
+- адаптер `DigitalRubleProviderClient` (WebClient/Feign),
+- idempotency keys,
+- асинхронные статусы операций,
+- reconciliation job,
+- event log/audit trail,
+- fallback/retry/circuit breaker.
 
-## LLM-агент и фильтры трат
-Фильтры теперь на клиента:
-- `llmAgentEnabled` — включить/выключить LLM-анализ;
-- `hardBlockEnabled` — жёстко блокировать запрещённые категории;
-- `confirmationThreshold` — порог обязательного подтверждения;
-- `blockedCategoriesCsv`, `riskyCategoriesCsv` — кастомные категории.
+## Деплой
+### Быстро
+- Render + Docker (`render.yaml` и `Dockerfile` уже есть).
 
-API:
-- `GET /api/v1/clients/{clientId}/spending-filters`
-- `PUT /api/v1/clients/{clientId}/spending-filters`
+### Нормальный production-путь
+- VPS/Cloud + Docker Compose
+- Nginx (TLS, reverse proxy)
+- PostgreSQL
+- Observability (Prometheus/Grafana, logs)
 
-## На что посадить сайт (сервер)
-### Быстрый и простой путь
-- **Render + Docker** (уже готово: `Dockerfile`, `render.yaml`).
-
-### Ближе к production
-- VPS (Hetzner/Timeweb/Yandex Cloud) + Docker Compose
-- Nginx (TLS/HTTPS, reverse proxy)
-- PostgreSQL вместо H2
-- CI/CD (GitHub Actions)
-
-## Версия для Android / Play Market
-Рекомендуется **TWA (Trusted Web Activity)**:
-1. Развернуть сайт по HTTPS.
-2. Настроить `assetlinks.json`.
-3. Bubblewrap -> сборка `.aab`.
-4. Публикация в Google Play Console.
-
-См. подробнее: `android/README.md`.
+## Android / Play Market
+- TWA (Trusted Web Activity) поверх веб-приложения.
+- Детали: `android/README.md`.

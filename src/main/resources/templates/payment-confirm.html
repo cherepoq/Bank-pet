@@ -12,7 +12,7 @@
 <body>
 <div class="container confirm-wrap">
     <div class="card confirm-card">
-        <h2>⚠ Подтверждение риска</h2>
+        <h2>⚠ Подтверждение риска (<span th:text="${confirmSeverity}"></span>)</h2>
         <p th:text="${confirmMessage}"></p>
         <p><b th:text="${confirmTitle}"></b> — <span th:text="${confirmAmount} + ' ₽' "></span> (<span th:text="${confirmCategory}"></span>)</p>
 
