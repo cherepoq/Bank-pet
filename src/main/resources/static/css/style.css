@@ -1,5 +1,5 @@
 :root {
-    --bg: linear-gradient(180deg, #100014 0%, #2d0639 30%, #5a1a63 58%, #ff58b5 82%, #ffd84d 100%);
+    --bg: linear-gradient(180deg, #120018 0%, #2c0b38 45%, #7d2a72 72%, #ff66bf 88%, #ffe06a 100%);
     --text: #fff7ff;
     --muted-text: #f6d6ff;
     --card-bg: rgba(20, 6, 34, 0.84);
@@ -15,7 +15,7 @@
 }
 
 :root[data-theme='light'] {
-    --bg: linear-gradient(180deg, #3f2356 0%, #73417f 28%, #aa579f 56%, #ff86cb 82%, #ffe06d 100%);
+    --bg: linear-gradient(180deg, #3d2352 0%, #68406f 45%, #9f5692 72%, #f08dc8 88%, #ffe589 100%);
     --text: #fff6ff;
     --muted-text: #ffe9ff;
     --card-bg: rgba(60, 24, 75, 0.65);
@@ -31,7 +31,8 @@
 }
 
 * { box-sizing: border-box; }
-body { margin: 0; font-family: Inter, Arial, sans-serif; background: var(--bg); background-attachment: fixed; color: var(--text); min-height: 100vh; }
+body { margin: 0; font-family: Inter, Arial, sans-serif; background: var(--bg); background-attachment: fixed; color: var(--text); min-height: 100vh; position: relative; }
+body::before { content:""; position: fixed; inset:0; pointer-events:none; background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.06), transparent 40%); mix-blend-mode: soft-light; }
 small, p { color: var(--muted-text); }
 .container { width: min(1100px, 100%); margin: 0 auto; padding: 20px; }
 .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }

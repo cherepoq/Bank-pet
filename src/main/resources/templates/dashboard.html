@@ -41,6 +41,12 @@
                         <option value="BALANCED" th:selected="${filters.agentProfile == 'BALANCED'}">Сбалансированный</option>
                         <option value="FRIENDLY" th:selected="${filters.agentProfile == 'FRIENDLY'}">Дружелюбный</option>
                         <option value="STRICT" th:selected="${filters.agentProfile == 'STRICT'}">Строгий</option>
+                        <option value="RUDE" th:selected="${filters.agentProfile == 'RUDE'}">Грубый</option>
+                        <option value="BULLY" th:selected="${filters.agentProfile == 'BULLY'}">Хулиган</option>
+                        <option value="PICKME" th:selected="${filters.agentProfile == 'PICKME'}">Пикми гёрл</option>
+                        <option value="WIFE" th:selected="${filters.agentProfile == 'WIFE'}">Жена</option>
+                        <option value="MOTHER" th:selected="${filters.agentProfile == 'MOTHER'}">Мать</option>
+                        <option value="BOSS" th:selected="${filters.agentProfile == 'BOSS'}">Начальник</option>
                     </select>
                     <input type="number" name="confirmationThreshold" step="0.01" min="1" th:value="${filters.confirmationThreshold}" placeholder="Порог подтверждения"/>
                     <input type="text" name="blockedCategoriesCsv" th:value="${filters.blockedCategoriesCsv}" placeholder="Блокируемые категории"/>
