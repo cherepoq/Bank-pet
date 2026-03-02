@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Bank Pet Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Мой банк</h1>
+        <p th:text="${dashboard.clientName} + ' • ' + ${dashboard.phone}"></p>
+    </header>
+
+    <section class="grid">
+        <div class="card">
+            <h3>Счёт</h3>
+            <p class="amount" th:text="${dashboard.accountBalance} + ' ₽'"></p>
+        </div>
+        <div class="card">
+            <h3>Цифровой рубль</h3>
+            <p class="amount" th:text="${dashboard.digitalRubleBalance} + ' ₽'"></p>
+            <p th:text="${dashboard.digitalRubleLinked} ? 'Кошелёк привязан' : 'Кошелёк не привязан'"></p>
+            <form th:if="${!dashboard.digitalRubleLinked}" method="post" action="/app/link">
+                <button type="submit">Привязать кошелёк</button>
+            </form>
+            <form th:if="${dashboard.digitalRubleLinked}" method="post" action="/app/topup">
+                <input type="number" name="amount" step="0.01" min="1" value="500"/>
+                <button type="submit">Пополнить с рублёвого счёта</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>Карты</h3>
+            <ul>
+                <li th:each="card : ${dashboard.cards}" th:text="${card}"></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>Последние операции</h3>
+            <ul>
+                <li th:each="trx : ${dashboard.recentTransactions}">
+                    <span th:text="${trx.title}"></span>
+                    <strong th:text="${trx.amount} + ' ₽'"></strong>
+                </li>
+            </ul>
+        </div>
+    </section>
+</div>
+</body>
+</html>
