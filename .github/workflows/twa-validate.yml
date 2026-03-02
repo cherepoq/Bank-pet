@@ -1,0 +1,20 @@
+name: TWA Config Validate
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'android/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check mandatory Android Play files
+        run: |
+          test -f android/README.md
+          test -f android/playstore/assetlinks.json.template
+          test -f android/playstore/store-listing-checklist.md
+          test -f android/scripts/build_twa.sh
+          test -f android/scripts/.env.twa.example

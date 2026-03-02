@@ -222,6 +222,15 @@ public class BankDashboardServiceImpl implements BankDashboardService {
                 .orElseThrow(() -> new IllegalArgumentException("Client not found"));
     }
 
+
+    private String safeCardView(Card card) {
+        try {
+            return card.getCardType() + " • " + cardDataProtectionService.decrypt(card.getEncryptedPan());
+        } catch (Exception e) {
+            return card.getCardType() + " • " + card.getCardReference();
+        }
+    }
+
     private BankDashboardDto toDto(Client client) {
         Account account = client.getAccounts().getFirst();
         SpendingFilterSettings settings = getOrCreateSettings(client);
@@ -240,7 +249,7 @@ public class BankDashboardServiceImpl implements BankDashboardService {
                 client.getDigitalRubleWallet().isLinked(),
                 settings.getAvoidedImpulseCount(),
                 settings.getAvoidedImpulseAmount(),
-                account.getCards().stream().map(c -> c.getCardType() + " • " + cardDataProtectionService.decrypt(c.getEncryptedPan())).toList(),
+                account.getCards().stream().map(this::safeCardView).toList(),
                 transactions
         );
     }

@@ -1,5 +1,5 @@
 :root {
-    --bg: linear-gradient(180deg, #120018 0%, #2c0b38 45%, #7d2a72 72%, #ff66bf 88%, #ffe06a 100%);
+    --bg: linear-gradient(180deg, #120018 0%, #2a0e3d 52%, #6a2a6a 78%, #ffe06a 100%);
     --text: #fff7ff;
     --muted-text: #f6d6ff;
     --card-bg: rgba(20, 6, 34, 0.84);
@@ -15,7 +15,7 @@
 }
 
 :root[data-theme='light'] {
-    --bg: linear-gradient(180deg, #3d2352 0%, #68406f 45%, #9f5692 72%, #f08dc8 88%, #ffe589 100%);
+    --bg: linear-gradient(180deg, #2f1a47 0%, #5f3a6b 52%, #a56aa0 78%, #ffe589 100%);
     --text: #fff6ff;
     --muted-text: #ffe9ff;
     --card-bg: rgba(60, 24, 75, 0.65);
@@ -32,7 +32,7 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; font-family: Inter, Arial, sans-serif; background: var(--bg); background-attachment: fixed; color: var(--text); min-height: 100vh; position: relative; }
-body::before { content:""; position: fixed; inset:0; pointer-events:none; background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.06), transparent 40%); mix-blend-mode: soft-light; }
+body::before { content:""; position: fixed; inset:0; pointer-events:none; background: radial-gradient(circle at 20% 18%, rgba(255,255,255,0.04), transparent 45%); }
 small, p { color: var(--muted-text); }
 .container { width: min(1100px, 100%); margin: 0 auto; padding: 20px; }
 .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
@@ -69,6 +69,10 @@ label { color: var(--text); font-weight: 600; display: flex; align-items: center
 .trx-list { list-style: none; margin: 0; padding: 0; }
 .trx-list li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--card-border); }
 .confirm-actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+.quick-start-card code { background: rgba(255,255,255,.12); padding: 2px 8px; border-radius: 8px; color: #fff5cb; }
+.quick-start-list { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 8px; }
+.quick-start-list li { color: var(--muted-text); }
 
 .agent-modal { position: fixed; inset: 0; background: rgba(0,0,0,.62); display:flex; align-items:center; justify-content:center; padding:16px; z-index: 50; }
 .agent-modal-card { width:min(520px,100%); text-align:center; background: var(--card-bg); border:1px solid var(--card-border); border-radius:18px; padding:20px; box-shadow:0 20px 50px rgba(0,0,0,.45); }
