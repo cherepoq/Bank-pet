@@ -56,6 +56,7 @@ public class DemoDataInitializer {
             trx1.setTitle("Покупка: Озон");
             trx1.setAmount(new BigDecimal("-3590.00"));
             trx1.setSourceType("CARD");
+            trx1.setCategory("SHOPPING");
             trx1.setCreatedAt(LocalDateTime.now().minusDays(1));
 
             PaymentTransaction trx2 = new PaymentTransaction();
@@ -63,6 +64,7 @@ public class DemoDataInitializer {
             trx2.setTitle("Зарплата");
             trx2.setAmount(new BigDecimal("120000.00"));
             trx2.setSourceType("RUB_ACCOUNT");
+            trx2.setCategory("INCOME");
             trx2.setCreatedAt(LocalDateTime.now().minusDays(3));
 
             transactionRepository.save(trx1);

@@ -3,11 +3,18 @@ package ru.bankpet.service.impl;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import ru.bankpet.dto.BankDashboardDto;
+import ru.bankpet.dto.PaymentDecisionDto;
+import ru.bankpet.dto.PaymentRequestDto;
 import ru.bankpet.dto.TransactionDto;
-import ru.bankpet.entity.*;
+import ru.bankpet.entity.Account;
+import ru.bankpet.entity.Card;
+import ru.bankpet.entity.Client;
+import ru.bankpet.entity.DigitalRubleWallet;
+import ru.bankpet.entity.PaymentTransaction;
 import ru.bankpet.repository.ClientRepository;
 import ru.bankpet.repository.PaymentTransactionRepository;
 import ru.bankpet.service.BankDashboardService;
+import ru.bankpet.service.SpendingGuardianAgent;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -21,11 +28,14 @@ public class BankDashboardServiceImpl implements BankDashboardService {
 
     private final ClientRepository clientRepository;
     private final PaymentTransactionRepository transactionRepository;
+    private final SpendingGuardianAgent guardianAgent;
 
     public BankDashboardServiceImpl(ClientRepository clientRepository,
-                                    PaymentTransactionRepository transactionRepository) {
+                                    PaymentTransactionRepository transactionRepository,
+                                    SpendingGuardianAgent guardianAgent) {
         this.clientRepository = clientRepository;
         this.transactionRepository = transactionRepository;
+        this.guardianAgent = guardianAgent;
     }
 
     @Override
@@ -54,14 +64,7 @@ public class BankDashboardServiceImpl implements BankDashboardService {
         account.setBalance(account.getBalance().subtract(amount));
         wallet.setBalance(wallet.getBalance().add(amount));
 
-        PaymentTransaction transaction = new PaymentTransaction();
-        transaction.setClient(client);
-        transaction.setAmount(amount.negate());
-        transaction.setSourceType("RUB_ACCOUNT");
-        transaction.setTitle("Пополнение цифрового рубля");
-        transaction.setCreatedAt(LocalDateTime.now());
-        transactionRepository.save(transaction);
-
+        saveTransaction(client, "Пополнение цифрового рубля", amount.negate(), "RUB_ACCOUNT", "DIGITAL_RUBLE");
         return toDto(client);
     }
 
@@ -70,6 +73,39 @@ public class BankDashboardServiceImpl implements BankDashboardService {
         Client client = getClient(clientId);
         client.getDigitalRubleWallet().setLinked(true);
         return toDto(client);
+    }
+
+    @Override
+    public PaymentDecisionDto processPayment(UUID clientId, PaymentRequestDto request) {
+        Client client = getClient(clientId);
+        Account account = client.getAccounts().getFirst();
+
+        SpendingGuardianAgent.GuardianDecision decision =
+                guardianAgent.evaluate(request.category(), request.amount(), request.confirmedByUser());
+
+        if (!"APPROVED".equals(decision.status())) {
+            return new PaymentDecisionDto(decision.status(), decision.message());
+        }
+
+        if (account.getBalance().compareTo(request.amount()) < 0) {
+            return new PaymentDecisionDto("REJECTED", "Недостаточно средств на счёте.");
+        }
+
+        account.setBalance(account.getBalance().subtract(request.amount()));
+        saveTransaction(client, request.title(), request.amount().negate(), "CARD", request.category());
+
+        return new PaymentDecisionDto("APPROVED", "Платёж выполнен успешно.");
+    }
+
+    private void saveTransaction(Client client, String title, BigDecimal amount, String sourceType, String category) {
+        PaymentTransaction transaction = new PaymentTransaction();
+        transaction.setClient(client);
+        transaction.setAmount(amount);
+        transaction.setSourceType(sourceType);
+        transaction.setCategory(category);
+        transaction.setTitle(title);
+        transaction.setCreatedAt(LocalDateTime.now());
+        transactionRepository.save(transaction);
     }
 
     private Client getClient(UUID clientId) {
@@ -83,7 +119,7 @@ public class BankDashboardServiceImpl implements BankDashboardService {
                 .filter(t -> t.getClient().getId().equals(client.getId()))
                 .sorted(Comparator.comparing(PaymentTransaction::getCreatedAt).reversed())
                 .limit(5)
-                .map(t -> new TransactionDto(t.getTitle(), t.getAmount(), t.getCreatedAt(), t.getSourceType()))
+                .map(t -> new TransactionDto(t.getTitle(), t.getAmount(), t.getCreatedAt(), t.getSourceType(), t.getCategory()))
                 .toList();
 
         return new BankDashboardDto(

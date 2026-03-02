@@ -7,26 +7,50 @@
 </head>
 <body>
 <div class="container">
-    <header>
-        <h1>Мой банк</h1>
-        <p th:text="${dashboard.clientName} + ' • ' + ${dashboard.phone}"></p>
+    <header class="header">
+        <div>
+            <h1>Bank Pet — Smart Banking</h1>
+            <p th:text="${dashboard.clientName} + ' • ' + ${dashboard.phone}"></p>
+        </div>
+        <span class="badge">ИИ-финконтроль включён</span>
     </header>
+
+    <div class="notice" th:if="${notice != null and !notice.isBlank()}" th:text="${notice}"></div>
 
     <section class="grid">
         <div class="card">
             <h3>Счёт</h3>
             <p class="amount" th:text="${dashboard.accountBalance} + ' ₽'"></p>
+            <small>Основной рублёвый счёт</small>
         </div>
-        <div class="card">
+        <div class="card accent">
             <h3>Цифровой рубль</h3>
             <p class="amount" th:text="${dashboard.digitalRubleBalance} + ' ₽'"></p>
             <p th:text="${dashboard.digitalRubleLinked} ? 'Кошелёк привязан' : 'Кошелёк не привязан'"></p>
             <form th:if="${!dashboard.digitalRubleLinked}" method="post" action="/app/link">
                 <button type="submit">Привязать кошелёк</button>
             </form>
-            <form th:if="${dashboard.digitalRubleLinked}" method="post" action="/app/topup">
+            <form th:if="${dashboard.digitalRubleLinked}" method="post" action="/app/topup" class="inline-form">
                 <input type="number" name="amount" step="0.01" min="1" value="500"/>
-                <button type="submit">Пополнить с рублёвого счёта</button>
+                <button type="submit">Пополнить</button>
+            </form>
+        </div>
+
+        <div class="card payment-card">
+            <h3>Новый платёж</h3>
+            <form method="post" action="/app/pay" class="payment-form">
+                <input name="title" required placeholder="Название платежа (например, iPhone 16)"/>
+                <input type="number" name="amount" required step="0.01" min="1" placeholder="Сумма"/>
+                <select name="category" required>
+                    <option value="SHOPPING">SHOPPING</option>
+                    <option value="GAMES">GAMES</option>
+                    <option value="BETTING">BETTING</option>
+                    <option value="ALCOHOL">ALCOHOL</option>
+                    <option value="CRYPTO">CRYPTO</option>
+                    <option value="TRAVEL">TRAVEL</option>
+                    <option value="EDUCATION">EDUCATION</option>
+                </select>
+                <button type="submit">Оплатить с проверкой ИИ</button>
             </form>
         </div>
 
@@ -37,11 +61,11 @@
             </ul>
         </div>
 
-        <div class="card">
+        <div class="card full-width">
             <h3>Последние операции</h3>
-            <ul>
+            <ul class="trx-list">
                 <li th:each="trx : ${dashboard.recentTransactions}">
-                    <span th:text="${trx.title}"></span>
+                    <span th:text="${trx.title} + ' (' + ${trx.category} + ')' "></span>
                     <strong th:text="${trx.amount} + ' ₽'"></strong>
                 </li>
             </ul>

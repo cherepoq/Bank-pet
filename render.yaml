@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: bank-pet
+    runtime: docker
+    autoDeploy: true
+    plan: free

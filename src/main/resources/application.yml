@@ -14,3 +14,8 @@ spring:
 
 server:
   port: 8080
+
+app:
+  guardian:
+    blocked-categories: BETTING,SCAM,GAMBLING
+    risky-categories: GAMES,ALCOHOL,LUXURY,CRYPTO

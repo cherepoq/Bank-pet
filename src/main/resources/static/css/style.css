@@ -1,34 +1,77 @@
 body {
     margin: 0;
     font-family: Inter, Arial, sans-serif;
-    background: linear-gradient(135deg, #e8f2ff, #f4f7ff);
+    background: radial-gradient(circle at 10% 20%, #e6f7ff, #f3f5ff 60%, #ffffff);
     color: #182134;
 }
 
 .container {
-    max-width: 900px;
+    max-width: 1060px;
     margin: 0 auto;
     padding: 24px;
 }
 
-header h1 { margin-bottom: 8px; }
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.badge {
+    background: #e8f7e8;
+    color: #0b6f25;
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.notice {
+    background: #fff4d6;
+    border-left: 4px solid #ffb400;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
     gap: 16px;
 }
+
+.full-width { grid-column: 1 / -1; }
 
 .card {
     background: #fff;
     border-radius: 14px;
-    padding: 16px;
+    padding: 18px;
     box-shadow: 0 10px 24px rgba(4, 30, 66, 0.08);
 }
 
+.accent {
+    background: linear-gradient(165deg, #ffffff, #edf6ff);
+}
+
 .amount {
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 700;
+    margin: 6px 0;
+}
+
+.payment-form,
+.inline-form {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.payment-form input,
+.payment-form select,
+.inline-form input {
+    flex: 1;
+    min-width: 140px;
 }
 
 button {
@@ -38,11 +81,45 @@ button {
     background: #1889ff;
     color: white;
     cursor: pointer;
+    font-weight: 600;
 }
 
-input {
+button.danger {
+    background: #d13d3d;
+}
+
+input, select {
     border: 1px solid #d6dfed;
     border-radius: 8px;
     padding: 10px;
-    margin-right: 8px;
+}
+
+.trx-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.trx-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eef2f8;
+}
+
+.confirm-wrap {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-card {
+    max-width: 560px;
+}
+
+.confirm-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 10px;
 }

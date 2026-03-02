@@ -26,6 +26,9 @@ public class PaymentTransaction {
     @Column(nullable = false)
     private String sourceType;
 
+    @Column(nullable = false)
+    private String category;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
@@ -39,6 +42,8 @@ public class PaymentTransaction {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public String getSourceType() { return sourceType; }
     public void setSourceType(String sourceType) { this.sourceType = sourceType; }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
     public Client getClient() { return client; }
     public void setClient(Client client) { this.client = client; }
 }

@@ -1,8 +1,11 @@
 package ru.bankpet.controller;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import org.springframework.web.bind.annotation.*;
 import ru.bankpet.dto.BankDashboardDto;
+import ru.bankpet.dto.PaymentDecisionDto;
+import ru.bankpet.dto.PaymentRequestDto;
 import ru.bankpet.service.BankDashboardService;
 
 import java.math.BigDecimal;
@@ -32,5 +35,11 @@ public class BankApiController {
     public BankDashboardDto topUpDigitalRuble(@PathVariable UUID clientId,
                                               @RequestParam @DecimalMin("0.01") BigDecimal amount) {
         return dashboardService.topUpDigitalRuble(clientId, amount);
+    }
+
+    @PostMapping("/payments")
+    public PaymentDecisionDto processPayment(@PathVariable UUID clientId,
+                                             @Valid @RequestBody PaymentRequestDto request) {
+        return dashboardService.processPayment(clientId, request);
     }
 }
