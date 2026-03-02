@@ -59,7 +59,8 @@ public class DemoDataInitializer {
             settings.setHardBlockEnabled(true);
             settings.setConfirmationThreshold(new BigDecimal("50000.00"));
             settings.setBlockedCategoriesCsv("BETTING,SCAM,GAMBLING");
-            settings.setRiskyCategoriesCsv("GAMES,ALCOHOL,LUXURY,CRYPTO,OZON,WB,ВКУСНЯШКИ");
+            settings.setRiskyCategoriesCsv("GAMES,ALCOHOL,LUXURY,CRYPTO,OZON,WB,ВКУСНЯШКИ,CASINO");
+            settings.setAvoidedImpulseCount(0);
             spendingFilterSettingsRepository.save(settings);
 
             PaymentTransaction trx1 = new PaymentTransaction();

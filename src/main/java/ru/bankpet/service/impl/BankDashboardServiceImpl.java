@@ -113,6 +113,15 @@ public class BankDashboardServiceImpl implements BankDashboardService {
         return externalTransactions.size();
     }
 
+
+    @Override
+    public void registerDeclinedImpulse(UUID clientId) {
+        Client client = getClient(clientId);
+        SpendingFilterSettings settings = getOrCreateSettings(client);
+        settings.setAvoidedImpulseCount(settings.getAvoidedImpulseCount() + 1);
+        filterSettingsRepository.save(settings);
+    }
+
     @Override
     public SpendingFilterSettingsDto getFilterSettings(UUID clientId) {
         SpendingFilterSettings settings = getOrCreateSettings(getClient(clientId));
@@ -183,7 +192,8 @@ public class BankDashboardServiceImpl implements BankDashboardService {
             settings.setHardBlockEnabled(true);
             settings.setConfirmationThreshold(new BigDecimal("50000.00"));
             settings.setBlockedCategoriesCsv("BETTING,SCAM,GAMBLING");
-            settings.setRiskyCategoriesCsv("GAMES,ALCOHOL,LUXURY,CRYPTO,OZON,WB,ВКУСНЯШКИ");
+            settings.setRiskyCategoriesCsv("GAMES,ALCOHOL,LUXURY,CRYPTO,OZON,WB,ВКУСНЯШКИ,CASINO");
+            settings.setAvoidedImpulseCount(0);
             return filterSettingsRepository.save(settings);
         });
     }
@@ -219,6 +229,7 @@ public class BankDashboardServiceImpl implements BankDashboardService {
                 account.getBalance(),
                 client.getDigitalRubleWallet().getBalance(),
                 client.getDigitalRubleWallet().isLinked(),
+                getOrCreateSettings(client).getAvoidedImpulseCount(),
                 account.getCards().stream().map(Card::getMaskedPan).toList(),
                 transactions
         );

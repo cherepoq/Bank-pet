@@ -18,7 +18,7 @@ server:
 app:
   guardian:
     blocked-categories: BETTING,SCAM,GAMBLING
-    risky-categories: GAMES,ALCOHOL,LUXURY,CRYPTO,OZON,WB,ВКУСНЯШКИ
+    risky-categories: GAMES,ALCOHOL,LUXURY,CRYPTO,OZON,WB,ВКУСНЯШКИ,CASINO
 
 # Для продакшена (пример):
 # spring:

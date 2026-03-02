@@ -9,6 +9,7 @@ public record BankDashboardDto(
         BigDecimal accountBalance,
         BigDecimal digitalRubleBalance,
         boolean digitalRubleLinked,
+        int avoidedImpulseCount,
         List<String> cards,
         List<TransactionDto> recentTransactions
 ) {

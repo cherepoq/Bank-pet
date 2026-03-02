@@ -1,83 +1,46 @@
 # Bank Pet (Java Middle Interview Demo)
 
-Полноценный демо-банк на Spring Boot для собеседований уровня Middle Java:
+Полноценный демо-банк на Spring Boot:
 - клиент, счета, карты, транзакции;
-- отдельный кошелёк цифрового рубля;
+- кошелёк цифрового рубля;
 - AI Spending Guardian + LLM-анализ риска;
-- NFC-платежи (через интеграционный gateway-слой);
-- синхронизация истории из внешних банков (верхний интеграционный слой);
-- REST API + Web UI (Thymeleaf);
-- Docker + Render для публичного доступа.
+- NFC-платежи под капотом (без отдельного NFC-экрана);
+- синхронизация истории из других банков;
+- REST API + Web UI (Thymeleaf).
 
-## Что сделано по последнему фидбеку
-- Убрана лишняя надпись про контраст.
-- Настройки AI-фильтров сделаны более понятными (человеческие формулировки).
-- Добавлены категории: `OZON`, `WB`, `ВКУСНЯШКИ`.
-- Добавлены уровни ругательств/реакций агента: `SOFT`, `MEDIUM`, `HARD`.
-- Вместо обычного “ручного платежа” в UI вынесен сценарий `NFC-оплаты` + кнопка подтягивания истории из других банков.
+## Что обновлено
+- Реакция агента теперь как **всплывающее окно** с эмодзи по центру, ругающимся текстом, субтитрами и озвучкой через `speechSynthesis` на телефоне.
+- Ввод для пользователя сделан естественнее: покупка через **выпадающий список категорий** без ручного ввода текста.
+- Добавлены категории: `Betting`, `OZON`, `WB`, `Casino`, `Вкусняшки`.
+- Добавлена вкладка **Платежи** с историей и счётчиком, сколько раз пользователь отказался от импульсивной траты.
+- NFC не показывается как отдельная функция в UI, но используется под капотом в обработке оплаты.
 
-## Архитектура интеграций (важно)
-### 1) NFC-оплата
-- `NfcPaymentGateway` — изолированный интеграционный слой (anti-corruption layer).
-- Сейчас в демо: mock-проверка токена устройства.
-- В проде: подключение к токенизированной платежной шине/процессингу, 3DS/Device binding, антифрод.
+## Реально ли NFC под капотом в банке?
+Да, это реалистично:
+1. Пользователь нажимает обычную кнопку «Оплатить».
+2. Под капотом клиентское приложение передает device/payment token.
+3. Бэкенд идёт в NFC/payment gateway (tokenized auth).
+4. Дальше policy+LLM проверка и решение.
 
-### 2) Подтягивание истории из других банков
-- `ExternalBankHistorySyncService` — верхний слой синхронизации истории.
-- Сейчас в демо: mock-провайдер транзакций.
-- В проде: Open Banking API, OAuth2 consent, пагинация, дедупликация, аудит.
+Т.е. UI может быть “обычным”, а NFC-цепочка — инфраструктурной.
 
-### 3) Агент решений по тратам
-- `SpendingGuardianAgent` принимает решение с учетом:
-  - пользовательских фильтров,
-  - категории,
-  - суммы,
-  - LLM-риск-оценки,
-  - подтверждения пользователя.
-- `LlmSpendingAdvisor` сейчас эвристический (как заглушка LLM).
+## Архитектурные блоки
+- `NfcPaymentGateway` — адаптер NFC-процессинга.
+- `ExternalBankHistorySyncService` — верхний слой импорта истории (open banking).
+- `SpendingGuardianAgent` — policy решение (`SOFT/MEDIUM/HARD`).
+- `LlmSpendingAdvisor` — вспомогательная LLM-оценка риска (сейчас эвристический stub).
 
-## Какого агента подключать в реальности
-Рекомендуемый вариант:
-1. **Policy Agent (обязательный слой)** — deterministic правила + лимиты + категории + комплаенс.
-2. **LLM Advisor (вспомогательный слой)** — объяснение риска и NLP-анализ назначения платежа.
-3. Итоговое решение принимает Policy слой, а не LLM (чтобы было контролируемо и объяснимо).
+## API
+- `POST /api/v1/clients/{clientId}/payments` — обычная оплата.
+- `POST /api/v1/clients/{clientId}/payments/nfc` — NFC backend flow.
+- `POST /api/v1/clients/{clientId}/history/sync` — подтянуть историю из внешних банков.
+- `GET/PUT /api/v1/clients/{clientId}/spending-filters` — настройки фильтров.
 
-Технически в Spring:
-- `PolicyEngineService` + `LlmRiskService` + `DecisionOrchestratorService`.
-- Логирование каждого решения + reason codes.
+## Почему Spring мог не стартовать
+Если видишь `Non-resolvable parent POM ... 403 Forbidden`, то это доступ к Maven Central, а не ошибка бизнес-кода.
 
-## Почему Spring может “не подниматься”
-Если ошибка типа:
-`Non-resolvable parent POM ... spring-boot-starter-parent ... 403 Forbidden`
-— это не баг бизнес-логики, а проблема доступа к Maven Central.
-
-Что делать:
-1. Проверить доступ к `https://repo.maven.apache.org/maven2`.
-2. Проверить proxy/VPN/корп.файрвол.
-3. Настроить `~/.m2/settings.xml` (mirror/repo credentials).
-4. `mvn -U clean package`.
-
-## Цифровой рубль: как подключать по-взрослому
-Сейчас: внутренний кошелек и операции `link` / `top-up`.
-
-Прод-версия:
-- адаптер `DigitalRubleProviderClient` (WebClient/Feign),
-- idempotency keys,
-- асинхронные статусы операций,
-- reconciliation job,
-- event log/audit trail,
-- fallback/retry/circuit breaker.
-
-## Деплой
-### Быстро
-- Render + Docker (`render.yaml` и `Dockerfile` уже есть).
-
-### Нормальный production-путь
-- VPS/Cloud + Docker Compose
-- Nginx (TLS, reverse proxy)
-- PostgreSQL
-- Observability (Prometheus/Grafana, logs)
-
-## Android / Play Market
-- TWA (Trusted Web Activity) поверх веб-приложения.
-- Детали: `android/README.md`.
+Проверка:
+- доступ к `https://repo.maven.apache.org/maven2`
+- proxy/VPN/firewall
+- `~/.m2/settings.xml`
+- `mvn -U clean package`

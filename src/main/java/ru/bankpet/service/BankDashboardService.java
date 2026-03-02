@@ -19,6 +19,8 @@ public interface BankDashboardService {
 
     int syncExternalHistory(UUID clientId);
 
+    void registerDeclinedImpulse(UUID clientId);
+
     SpendingFilterSettingsDto getFilterSettings(UUID clientId);
 
     SpendingFilterSettingsDto updateFilterSettings(UUID clientId, SpendingFilterSettingsDto request);

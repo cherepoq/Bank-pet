@@ -27,12 +27,27 @@ public class BankWebController {
     }
 
     @GetMapping
-    public String dashboard(Model model, @ModelAttribute("notice") String notice) {
+    public String dashboard(Model model,
+                            @ModelAttribute("notice") String notice,
+                            @ModelAttribute("showAgentPopup") Boolean showAgentPopup,
+                            @ModelAttribute("confirmTitle") String confirmTitle,
+                            @ModelAttribute("confirmAmount") BigDecimal confirmAmount,
+                            @ModelAttribute("confirmCategory") String confirmCategory,
+                            @ModelAttribute("confirmMessage") String confirmMessage,
+                            @ModelAttribute("confirmSeverity") String confirmSeverity,
+                            @ModelAttribute("confirmSourceType") String confirmSourceType) {
         UUID clientId = demoClientId();
         model.addAttribute("dashboard", service.getDashboard(clientId));
         model.addAttribute("filters", service.getFilterSettings(clientId));
         model.addAttribute("clientId", clientId);
         model.addAttribute("notice", notice);
+        model.addAttribute("showAgentPopup", showAgentPopup);
+        model.addAttribute("confirmTitle", confirmTitle);
+        model.addAttribute("confirmAmount", confirmAmount);
+        model.addAttribute("confirmCategory", confirmCategory);
+        model.addAttribute("confirmMessage", confirmMessage);
+        model.addAttribute("confirmSeverity", confirmSeverity);
+        model.addAttribute("confirmSourceType", confirmSourceType);
         return "dashboard";
     }
 
@@ -51,26 +66,14 @@ public class BankWebController {
     }
 
     @PostMapping("/pay")
-    public String pay(@RequestParam String title,
-                      @RequestParam BigDecimal amount,
+    public String pay(@RequestParam BigDecimal amount,
                       @RequestParam String category,
-                      RedirectAttributes redirectAttributes,
-                      Model model) {
-        PaymentRequestDto request = new PaymentRequestDto(title, amount, category, null);
-        PaymentDecisionDto result = service.processPayment(demoClientId(), request);
-        return handleDecision(title, amount, category, result, redirectAttributes, model);
-    }
-
-    @PostMapping("/nfc/pay")
-    public String nfcPay(@RequestParam String merchant,
-                         @RequestParam BigDecimal amount,
-                         @RequestParam String category,
-                         @RequestParam(defaultValue = "demo-nfc-token") String deviceToken,
-                         RedirectAttributes redirectAttributes,
-                         Model model) {
+                      @RequestParam(defaultValue = "BANK_APP_TOKEN") String deviceToken,
+                      RedirectAttributes redirectAttributes) {
+        String merchant = category;
         NfcPurchaseRequestDto request = new NfcPurchaseRequestDto(merchant, amount, category, deviceToken, null);
         PaymentDecisionDto result = service.processNfcPayment(demoClientId(), request);
-        return handleDecision("NFC: " + merchant, amount, category, result, redirectAttributes, model);
+        return handleDecision("NFC: " + merchant, amount, category, "NFC", result, redirectAttributes);
     }
 
     @PostMapping("/sync-history")
@@ -105,25 +108,37 @@ public class BankWebController {
     public String confirmPay(@RequestParam String title,
                              @RequestParam BigDecimal amount,
                              @RequestParam String category,
-                             @RequestParam boolean confirmed,
+                             @RequestParam String sourceType,
                              RedirectAttributes redirectAttributes) {
-        PaymentRequestDto request = new PaymentRequestDto(title, amount, category, confirmed);
-        PaymentDecisionDto result = service.processPayment(demoClientId(), request);
-        redirectAttributes.addFlashAttribute("notice", result.message());
+        PaymentDecisionDto result;
+        if ("NFC".equalsIgnoreCase(sourceType)) {
+            result = service.processNfcPayment(demoClientId(), new NfcPurchaseRequestDto(category, amount, category, "BANK_APP_TOKEN", true));
+        } else {
+            result = service.processPayment(demoClientId(), new PaymentRequestDto(title, amount, category, true));
+        }
+        redirectAttributes.addFlashAttribute("notice", "[" + result.severity() + "] " + result.message());
         return "redirect:/app";
     }
 
-    private String handleDecision(String title, BigDecimal amount, String category,
+    @PostMapping("/pay/cancel")
+    public String cancelPay(RedirectAttributes redirectAttributes) {
+        service.registerDeclinedImpulse(demoClientId());
+        redirectAttributes.addFlashAttribute("notice", "Отлично! Вы отказались от импульсивной траты 👏");
+        return "redirect:/app";
+    }
+
+    private String handleDecision(String title, BigDecimal amount, String category, String sourceType,
                                   PaymentDecisionDto result,
-                                  RedirectAttributes redirectAttributes,
-                                  Model model) {
+                                  RedirectAttributes redirectAttributes) {
         if ("NEEDS_CONFIRMATION".equals(result.status())) {
-            model.addAttribute("confirmTitle", title);
-            model.addAttribute("confirmAmount", amount);
-            model.addAttribute("confirmCategory", category);
-            model.addAttribute("confirmMessage", result.message());
-            model.addAttribute("confirmSeverity", result.severity());
-            return "payment-confirm";
+            redirectAttributes.addFlashAttribute("showAgentPopup", true);
+            redirectAttributes.addFlashAttribute("confirmTitle", title);
+            redirectAttributes.addFlashAttribute("confirmAmount", amount);
+            redirectAttributes.addFlashAttribute("confirmCategory", category);
+            redirectAttributes.addFlashAttribute("confirmMessage", result.message());
+            redirectAttributes.addFlashAttribute("confirmSeverity", result.severity());
+            redirectAttributes.addFlashAttribute("confirmSourceType", sourceType);
+            return "redirect:/app";
         }
         redirectAttributes.addFlashAttribute("notice", "[" + result.severity() + "] " + result.message());
         return "redirect:/app";

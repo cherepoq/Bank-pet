@@ -32,6 +32,9 @@ public class SpendingFilterSettings {
     @Column(nullable = false, length = 500)
     private String riskyCategoriesCsv;
 
+    @Column(nullable = false)
+    private int avoidedImpulseCount;
+
     public UUID getId() { return id; }
     public Client getClient() { return client; }
     public void setClient(Client client) { this.client = client; }
@@ -45,4 +48,6 @@ public class SpendingFilterSettings {
     public void setBlockedCategoriesCsv(String blockedCategoriesCsv) { this.blockedCategoriesCsv = blockedCategoriesCsv; }
     public String getRiskyCategoriesCsv() { return riskyCategoriesCsv; }
     public void setRiskyCategoriesCsv(String riskyCategoriesCsv) { this.riskyCategoriesCsv = riskyCategoriesCsv; }
+    public int getAvoidedImpulseCount() { return avoidedImpulseCount; }
+    public void setAvoidedImpulseCount(int avoidedImpulseCount) { this.avoidedImpulseCount = avoidedImpulseCount; }
 }
