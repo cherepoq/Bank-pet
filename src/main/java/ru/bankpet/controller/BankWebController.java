@@ -89,6 +89,7 @@ public class BankWebController {
                                 @RequestParam BigDecimal confirmationThreshold,
                                 @RequestParam String blockedCategoriesCsv,
                                 @RequestParam String riskyCategoriesCsv,
+                                @RequestParam String agentProfile,
                                 RedirectAttributes redirectAttributes) {
         service.updateFilterSettings(
                 demoClientId(),
@@ -97,7 +98,8 @@ public class BankWebController {
                         hardBlockEnabled,
                         confirmationThreshold,
                         blockedCategoriesCsv,
-                        riskyCategoriesCsv
+                        riskyCategoriesCsv,
+                        agentProfile
                 )
         );
         redirectAttributes.addFlashAttribute("notice", "Настройки фильтров сохранены.");
@@ -121,8 +123,8 @@ public class BankWebController {
     }
 
     @PostMapping("/pay/cancel")
-    public String cancelPay(RedirectAttributes redirectAttributes) {
-        service.registerDeclinedImpulse(demoClientId());
+    public String cancelPay(@RequestParam BigDecimal amount, RedirectAttributes redirectAttributes) {
+        service.registerDeclinedImpulse(demoClientId(), amount);
         redirectAttributes.addFlashAttribute("notice", "Отлично! Вы отказались от импульсивной траты 👏");
         return "redirect:/app";
     }

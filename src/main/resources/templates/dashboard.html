@@ -30,67 +30,68 @@
     </div>
 
     <section id="home" class="tab-content active">
-        <section class="grid">
-            <div class="card">
-                <h3>Счёт</h3>
-                <p class="amount" th:text="${dashboard.accountBalance} + ' ₽'"></p>
-                <small>Основной рублёвый счёт</small>
-            </div>
-            <div class="card accent">
-                <h3>Цифровой рубль</h3>
-                <p class="amount" th:text="${dashboard.digitalRubleBalance} + ' ₽'"></p>
-                <p th:text="${dashboard.digitalRubleLinked} ? 'Кошелёк привязан' : 'Кошелёк не привязан'"></p>
-                <form th:if="${!dashboard.digitalRubleLinked}" method="post" action="/app/link">
-                    <button type="submit">Привязать кошелёк</button>
-                </form>
-                <form th:if="${dashboard.digitalRubleLinked}" method="post" action="/app/topup" class="inline-form">
-                    <input type="number" name="amount" step="0.01" min="1" value="500"/>
-                    <button type="submit">Пополнить</button>
-                </form>
-            </div>
-
-            <div class="card payment-card">
-                <h3>Новая покупка</h3>
-                <form method="post" action="/app/pay" class="payment-form">
-                    <select name="category" required>
-                        <option value="BETTING">Betting</option>
-                        <option value="OZON">OZON</option>
-                        <option value="WB">WB</option>
-                        <option value="CASINO">Casino</option>
-                        <option value="ВКУСНЯШКИ">Вкусняшки</option>
-                    </select>
-                    <input type="number" name="amount" required step="0.01" min="1" placeholder="Сумма"/>
-                    <button type="submit">Оплатить</button>
-                </form>
-                <small>NFC-обертка работает под капотом, без отдельного UI-режима.</small>
-            </div>
-
-            <div class="card">
-                <h3>Карты</h3>
-                <ul>
-                    <li th:each="card : ${dashboard.cards}" th:text="${card}"></li>
-                </ul>
-            </div>
-
-            <div class="card full-width">
-                <h3>Понятные настройки AI-защиты</h3>
+        <div class="app-layout">
+            <aside class="sidebar card">
+                <h3>Профиль агента</h3>
+                <p>Выберите характер ответов ассистента:</p>
                 <form method="post" action="/app/filters" class="payment-form">
-                    <label><input type="checkbox" name="llmAgentEnabled" th:checked="${filters.llmAgentEnabled}"/> Анализировать траты LLM-агентом</label>
-                    <label><input type="checkbox" name="hardBlockEnabled" th:checked="${filters.hardBlockEnabled}"/> Полностью блокировать запрещенные категории</label>
-                    <input type="number" name="confirmationThreshold" step="0.01" min="1" th:value="${filters.confirmationThreshold}" placeholder="Сумма, с которой нужно подтверждение"/>
-                    <input type="text" name="blockedCategoriesCsv" th:value="${filters.blockedCategoriesCsv}" placeholder="Что блокируем (через запятую)"/>
-                    <input type="text" name="riskyCategoriesCsv" th:value="${filters.riskyCategoriesCsv}" placeholder="Что считаем рискованным"/>
-                    <button type="submit">Сохранить настройки защиты</button>
+                    <label><input type="checkbox" name="llmAgentEnabled" th:checked="${filters.llmAgentEnabled}"/> LLM анализ включен</label>
+                    <label><input type="checkbox" name="hardBlockEnabled" th:checked="${filters.hardBlockEnabled}"/> Строго блокировать запреты</label>
+                    <select name="agentProfile">
+                        <option value="BALANCED" th:selected="${filters.agentProfile == 'BALANCED'}">Сбалансированный</option>
+                        <option value="FRIENDLY" th:selected="${filters.agentProfile == 'FRIENDLY'}">Дружелюбный</option>
+                        <option value="STRICT" th:selected="${filters.agentProfile == 'STRICT'}">Строгий</option>
+                    </select>
+                    <input type="number" name="confirmationThreshold" step="0.01" min="1" th:value="${filters.confirmationThreshold}" placeholder="Порог подтверждения"/>
+                    <input type="text" name="blockedCategoriesCsv" th:value="${filters.blockedCategoriesCsv}" placeholder="Блокируемые категории"/>
+                    <input type="text" name="riskyCategoriesCsv" th:value="${filters.riskyCategoriesCsv}" placeholder="Рискованные категории"/>
+                    <button type="submit">Сохранить</button>
                 </form>
-                <small>Степени реакции агента: SOFT, MEDIUM, HARD.</small>
-            </div>
-        </section>
+            </aside>
+
+            <section class="grid main-grid">
+                <div class="card">
+                    <h3>Счёт</h3>
+                    <p class="amount" th:text="${dashboard.accountBalance} + ' ₽'"></p>
+                    <small>Основной рублёвый счёт</small>
+                </div>
+                <div class="card accent">
+                    <h3>Цифровой рубль</h3>
+                    <p class="amount" th:text="${dashboard.digitalRubleBalance} + ' ₽'"></p>
+                    <p th:text="${dashboard.digitalRubleLinked} ? 'Кошелёк привязан' : 'Кошелёк не привязан'"></p>
+                    <form th:if="${!dashboard.digitalRubleLinked}" method="post" action="/app/link">
+                        <button type="submit">Привязать кошелёк</button>
+                    </form>
+                    <form th:if="${dashboard.digitalRubleLinked}" method="post" action="/app/topup" class="inline-form">
+                        <input type="number" name="amount" step="0.01" min="1" value="500"/>
+                        <button type="submit">Пополнить</button>
+                    </form>
+                </div>
+
+                <div class="card payment-card full-width">
+                    <h3>Новая покупка</h3>
+                    <form method="post" action="/app/pay" class="payment-form">
+                        <select name="category" required>
+                            <option value="BETTING">Betting</option>
+                            <option value="OZON">OZON</option>
+                            <option value="WB">WB</option>
+                            <option value="CASINO">Casino</option>
+                            <option value="ВКУСНЯШКИ">Вкусняшки</option>
+                        </select>
+                        <input type="number" name="amount" required step="0.01" min="1" placeholder="Сумма"/>
+                        <button type="submit">Оплатить</button>
+                    </form>
+                    <small>NFC-обертка работает под капотом, без отдельного UI-режима.</small>
+                </div>
+            </section>
+        </div>
     </section>
 
     <section id="payments" class="tab-content">
         <div class="card full-width">
             <h3>История платежей</h3>
             <p>Отказов от импульсивных покупок: <strong th:text="${dashboard.avoidedImpulseCount}"></strong></p>
+            <p>Сэкономлено на отменённых покупках: <strong th:text="${dashboard.avoidedImpulseAmount} + ' ₽'"></strong></p>
             <form method="post" action="/app/sync-history" class="inline-form" style="margin:8px 0 14px;">
                 <button type="submit">Подтянуть историю из других банков</button>
             </form>
@@ -119,7 +120,8 @@
                 <button type="submit">Да, продолжить</button>
             </form>
             <form method="post" action="/app/pay/cancel">
-                <button type="submit" class="danger">Нет, отменить</button>
+                <input type="hidden" name="amount" th:value="${confirmAmount}"/>
+                <button type="submit" class="cancel-gradient">Нет, отменить</button>
             </form>
         </div>
     </div>

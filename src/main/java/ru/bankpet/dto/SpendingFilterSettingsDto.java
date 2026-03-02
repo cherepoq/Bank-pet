@@ -10,6 +10,7 @@ public record SpendingFilterSettingsDto(
         boolean hardBlockEnabled,
         @DecimalMin("1.00") BigDecimal confirmationThreshold,
         @NotBlank String blockedCategoriesCsv,
-        @NotBlank String riskyCategoriesCsv
+        @NotBlank String riskyCategoriesCsv,
+        @NotBlank String agentProfile
 ) {
 }

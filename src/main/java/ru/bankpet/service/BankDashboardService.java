@@ -19,7 +19,7 @@ public interface BankDashboardService {
 
     int syncExternalHistory(UUID clientId);
 
-    void registerDeclinedImpulse(UUID clientId);
+    void registerDeclinedImpulse(UUID clientId, BigDecimal amount);
 
     SpendingFilterSettingsDto getFilterSettings(UUID clientId);
 

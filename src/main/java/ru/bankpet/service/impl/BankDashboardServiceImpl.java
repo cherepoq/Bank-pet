@@ -113,12 +113,12 @@ public class BankDashboardServiceImpl implements BankDashboardService {
         return externalTransactions.size();
     }
 
-
     @Override
-    public void registerDeclinedImpulse(UUID clientId) {
+    public void registerDeclinedImpulse(UUID clientId, BigDecimal amount) {
         Client client = getClient(clientId);
         SpendingFilterSettings settings = getOrCreateSettings(client);
         settings.setAvoidedImpulseCount(settings.getAvoidedImpulseCount() + 1);
+        settings.setAvoidedImpulseAmount(settings.getAvoidedImpulseAmount().add(amount));
         filterSettingsRepository.save(settings);
     }
 
@@ -136,6 +136,7 @@ public class BankDashboardServiceImpl implements BankDashboardService {
         settings.setConfirmationThreshold(request.confirmationThreshold());
         settings.setBlockedCategoriesCsv(request.blockedCategoriesCsv());
         settings.setRiskyCategoriesCsv(request.riskyCategoriesCsv());
+        settings.setAgentProfile(request.agentProfile());
         filterSettingsRepository.save(settings);
         return toSettingsDto(settings);
     }
@@ -156,7 +157,8 @@ public class BankDashboardServiceImpl implements BankDashboardService {
                         settings.isHardBlockEnabled(),
                         settings.getConfirmationThreshold(),
                         settings.getBlockedCategoriesCsv(),
-                        settings.getRiskyCategoriesCsv()
+                        settings.getRiskyCategoriesCsv(),
+                        settings.getAgentProfile()
                 )
         );
 
@@ -180,7 +182,8 @@ public class BankDashboardServiceImpl implements BankDashboardService {
                 settings.isHardBlockEnabled(),
                 settings.getConfirmationThreshold(),
                 settings.getBlockedCategoriesCsv(),
-                settings.getRiskyCategoriesCsv()
+                settings.getRiskyCategoriesCsv(),
+                settings.getAgentProfile()
         );
     }
 
@@ -194,6 +197,8 @@ public class BankDashboardServiceImpl implements BankDashboardService {
             settings.setBlockedCategoriesCsv("BETTING,SCAM,GAMBLING");
             settings.setRiskyCategoriesCsv("GAMES,ALCOHOL,LUXURY,CRYPTO,OZON,WB,ВКУСНЯШКИ,CASINO");
             settings.setAvoidedImpulseCount(0);
+            settings.setAvoidedImpulseAmount(BigDecimal.ZERO);
+            settings.setAgentProfile("BALANCED");
             return filterSettingsRepository.save(settings);
         });
     }
@@ -216,6 +221,7 @@ public class BankDashboardServiceImpl implements BankDashboardService {
 
     private BankDashboardDto toDto(Client client) {
         Account account = client.getAccounts().getFirst();
+        SpendingFilterSettings settings = getOrCreateSettings(client);
         List<TransactionDto> transactions = transactionRepository.findAll().stream()
                 .filter(t -> t.getClient().getId().equals(client.getId()))
                 .sorted(Comparator.comparing(PaymentTransaction::getCreatedAt).reversed())
@@ -229,7 +235,8 @@ public class BankDashboardServiceImpl implements BankDashboardService {
                 account.getBalance(),
                 client.getDigitalRubleWallet().getBalance(),
                 client.getDigitalRubleWallet().isLinked(),
-                getOrCreateSettings(client).getAvoidedImpulseCount(),
+                settings.getAvoidedImpulseCount(),
+                settings.getAvoidedImpulseAmount(),
                 account.getCards().stream().map(Card::getMaskedPan).toList(),
                 transactions
         );

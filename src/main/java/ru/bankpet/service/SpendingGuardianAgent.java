@@ -23,7 +23,7 @@ public class SpendingGuardianAgent {
         Set<String> risky = csvToSet(preferences.riskyCategoriesCsv());
 
         if (preferences.hardBlockEnabled() && blocked.contains(normalizedCategory)) {
-            return new GuardianDecision("REJECTED", "HARD", "🚫 Жёсткий стоп: эту категорию мы блокируем без вариантов.");
+            return new GuardianDecision("REJECTED", "HARD", buildMessage(preferences.agentProfile(), "HARD", true));
         }
 
         boolean riskyByCategory = risky.contains(normalizedCategory);
@@ -41,19 +41,36 @@ public class SpendingGuardianAgent {
         if (riskyByAmount) totalRisk = Math.max(totalRisk, 75);
 
         if (totalRisk >= 85 && !Boolean.TRUE.equals(confirmedByUser)) {
-            return new GuardianDecision("NEEDS_CONFIRMATION", "HARD",
-                    "⛔ Это очень сомнительная трата. Я настоятельно не рекомендую оплачивать." + llmComment);
+            return new GuardianDecision("NEEDS_CONFIRMATION", "HARD", buildMessage(preferences.agentProfile(), "HARD", false) + llmComment);
         }
         if (totalRisk >= 65 && !Boolean.TRUE.equals(confirmedByUser)) {
-            return new GuardianDecision("NEEDS_CONFIRMATION", "MEDIUM",
-                    "⚠ Похоже на импульсивную покупку. Подтвердите, если точно нужно." + llmComment);
+            return new GuardianDecision("NEEDS_CONFIRMATION", "MEDIUM", buildMessage(preferences.agentProfile(), "MEDIUM", false) + llmComment);
         }
         if (totalRisk >= 45 && !Boolean.TRUE.equals(confirmedByUser)) {
-            return new GuardianDecision("NEEDS_CONFIRMATION", "SOFT",
-                    "🙂 Небольшое предупреждение: проверьте, точно ли хотите эту покупку." + llmComment);
+            return new GuardianDecision("NEEDS_CONFIRMATION", "SOFT", buildMessage(preferences.agentProfile(), "SOFT", false) + llmComment);
         }
 
         return new GuardianDecision("APPROVED", "SOFT", "✅ Платёж одобрен.");
+    }
+
+    private String buildMessage(String profile, String severity, boolean blocked) {
+        return switch (profile == null ? "BALANCED" : profile.toUpperCase()) {
+            case "STRICT" -> switch (severity) {
+                case "HARD" -> blocked ? "🚫 Строгий режим: категория запрещена. Платеж остановлен." : "⛔ Строгий режим: не рекомендую, риск слишком высокий.";
+                case "MEDIUM" -> "⚠ Строгий режим: трата сомнительная, подтвердите только при острой необходимости.";
+                default -> "🙂 Строгий режим: лучше перепроверьте покупку перед оплатой.";
+            };
+            case "FRIENDLY" -> switch (severity) {
+                case "HARD" -> blocked ? "🙅‍♂️ Дружеский стоп: эту покупку лучше не делать." : "😬 Похоже на ненужную трату, давайте лучше отменим.";
+                case "MEDIUM" -> "🤔 Может отложим? Похоже на импульсивную покупку.";
+                default -> "🙂 Небольшое напоминание: проверьте, точно ли нужно сейчас.";
+            };
+            default -> switch (severity) {
+                case "HARD" -> blocked ? "🚫 Категория заблокирована вашими настройками." : "⛔ Высокий риск. Рекомендую не платить.";
+                case "MEDIUM" -> "⚠ Обнаружен риск импульсивной траты. Подтвердите решение.";
+                default -> "🙂 Проверьте покупку перед оплатой.";
+            };
+        };
     }
 
     private Set<String> csvToSet(String csv) {
@@ -68,7 +85,8 @@ public class SpendingGuardianAgent {
                                       boolean hardBlockEnabled,
                                       BigDecimal confirmationThreshold,
                                       String blockedCategoriesCsv,
-                                      String riskyCategoriesCsv) {}
+                                      String riskyCategoriesCsv,
+                                      String agentProfile) {}
 
     public record GuardianDecision(String status, String severity, String message) {}
 }

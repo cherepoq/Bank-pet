@@ -61,6 +61,8 @@ public class DemoDataInitializer {
             settings.setBlockedCategoriesCsv("BETTING,SCAM,GAMBLING");
             settings.setRiskyCategoriesCsv("GAMES,ALCOHOL,LUXURY,CRYPTO,OZON,WB,ВКУСНЯШКИ,CASINO");
             settings.setAvoidedImpulseCount(0);
+            settings.setAvoidedImpulseAmount(BigDecimal.ZERO);
+            settings.setAgentProfile("BALANCED");
             spendingFilterSettingsRepository.save(settings);
 
             PaymentTransaction trx1 = new PaymentTransaction();
