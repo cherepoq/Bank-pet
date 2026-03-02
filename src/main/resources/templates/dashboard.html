@@ -2,8 +2,12 @@
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#120018"/>
     <title>Bank Pet Dashboard</title>
+    <link rel="manifest" href="/manifest.webmanifest"/>
     <link rel="stylesheet" href="/css/style.css"/>
+    <script defer src="/js/theme.js"></script>
 </head>
 <body>
 <div class="container">
@@ -12,7 +16,10 @@
             <h1>Bank Pet — Smart Banking</h1>
             <p th:text="${dashboard.clientName} + ' • ' + ${dashboard.phone}"></p>
         </div>
-        <span class="badge">ИИ-финконтроль включён</span>
+        <div class="header-actions">
+            <span class="badge">ИИ-финконтроль включён</span>
+            <button id="themeToggle" class="theme-toggle" type="button">🌙 Тёмная тема</button>
+        </div>
     </header>
 
     <div class="notice" th:if="${notice != null and !notice.isBlank()}" th:text="${notice}"></div>
