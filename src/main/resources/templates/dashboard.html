@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#120018"/>
+    <title>Bank Pet Dashboard</title>
+    <link rel="manifest" href="/manifest.webmanifest"/>
+    <link rel="stylesheet" href="/css/style.css"/>
+    <script defer src="/js/theme.js"></script>
+</head>
+<body>
+<div class="container">
+    <header class="header">
+        <div>
+            <h1>Bank Pet — Smart Banking</h1>
+            <p th:text="${dashboard.clientName} + ' • ' + ${dashboard.phone}"></p>
+        </div>
+        <div class="header-actions">
+            <span class="badge">ИИ-финконтроль включён</span>
+            <button id="themeToggle" class="theme-toggle" type="button">🌙 Тёмная тема</button>
+        </div>
+    </header>
+
+    <div class="notice" th:if="${notice != null and !notice.isBlank()}" th:text="${notice}"></div>
+
+
+    <section class="summary-strip">
+        <div class="summary-item card-mini">
+            <span>Счёт</span>
+            <strong th:text="${dashboard.accountBalance} + ' ₽'"></strong>
+        </div>
+        <div class="summary-item card-mini" th:if="${!dashboard.cards.isEmpty()}">
+            <span>Карта</span>
+            <strong th:text="${dashboard.cards.get(0)}"></strong>
+        </div>
+        <div class="summary-item card-mini">
+            <span>Цифровой рубль</span>
+            <strong th:text="${dashboard.digitalRubleBalance} + ' ₽'"></strong>
+        </div>
+    </section>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="home">Главная</button>
+        <button class="tab-btn" data-tab="payments">Платежи</button>
+    </div>
+
+    <section id="home" class="tab-content active">
+        <div class="app-layout">
+            <aside class="sidebar card">
+                <h3>Профиль агента</h3>
+                <p>Выберите характер ответов ассистента:</p>
+                <form method="post" action="/app/filters" class="payment-form">
+                    <label><input type="checkbox" name="llmAgentEnabled" th:checked="${filters.llmAgentEnabled}"/> LLM анализ включен</label>
+                    <label><input type="checkbox" name="hardBlockEnabled" th:checked="${filters.hardBlockEnabled}"/> Строго блокировать запреты</label>
+                    <select name="agentProfile">
+                        <option value="BALANCED" th:selected="${filters.agentProfile == 'BALANCED'}">Сбалансированный</option>
+                        <option value="FRIENDLY" th:selected="${filters.agentProfile == 'FRIENDLY'}">Дружелюбный</option>
+                        <option value="STRICT" th:selected="${filters.agentProfile == 'STRICT'}">Строгий</option>
+                        <option value="RUDE" th:selected="${filters.agentProfile == 'RUDE'}">Грубый</option>
+                        <option value="BULLY" th:selected="${filters.agentProfile == 'BULLY'}">Хулиган</option>
+                        <option value="PICKME" th:selected="${filters.agentProfile == 'PICKME'}">Пикми гёрл</option>
+                        <option value="WIFE" th:selected="${filters.agentProfile == 'WIFE'}">Жена</option>
+                        <option value="MOTHER" th:selected="${filters.agentProfile == 'MOTHER'}">Мать</option>
+                        <option value="BOSS" th:selected="${filters.agentProfile == 'BOSS'}">Начальник</option>
+                    </select>
+                    <input type="number" name="confirmationThreshold" step="0.01" min="1" th:value="${filters.confirmationThreshold}" placeholder="Порог подтверждения"/>
+                    <input type="text" name="blockedCategoriesCsv" th:value="${filters.blockedCategoriesCsv}" placeholder="Блокируемые категории"/>
+                    <input type="text" name="riskyCategoriesCsv" th:value="${filters.riskyCategoriesCsv}" placeholder="Рискованные категории"/>
+                    <button type="submit">Сохранить</button>
+                </form>
+            </aside>
+
+            <section class="grid main-grid">
+                <div class="card">
+                    <h3>Счёт</h3>
+                    <p class="amount" th:text="${dashboard.accountBalance} + ' ₽'"></p>
+                    <small>Основной рублёвый счёт</small>
+                </div>
+                <div class="card accent">
+                    <h3>Цифровой рубль</h3>
+                    <p class="amount" th:text="${dashboard.digitalRubleBalance} + ' ₽'"></p>
+                    <p th:text="${dashboard.digitalRubleLinked} ? 'Кошелёк привязан' : 'Кошелёк не привязан'"></p>
+                    <form th:if="${!dashboard.digitalRubleLinked}" method="post" action="/app/link">
+                        <button type="submit">Привязать кошелёк</button>
+                    </form>
+                    <form th:if="${dashboard.digitalRubleLinked}" method="post" action="/app/topup" class="inline-form">
+                        <input type="number" name="amount" step="0.01" min="1" value="500"/>
+                        <button type="submit">Пополнить</button>
+                    </form>
+                </div>
+
+                <div class="card payment-card full-width">
+                    <h3>Новая покупка</h3>
+                    <form method="post" action="/app/pay" class="payment-form">
+                        <select name="category" required>
+                            <option value="BETTING">Betting</option>
+                            <option value="OZON">OZON</option>
+                            <option value="WB">WB</option>
+                            <option value="CASINO">Casino</option>
+                            <option value="ВКУСНЯШКИ">Вкусняшки</option>
+                        </select>
+                        <input type="number" name="amount" required step="0.01" min="1" placeholder="Сумма"/>
+                        <button type="submit">Оплатить</button>
+                    </form>
+                    <small>NFC-обертка работает под капотом, без отдельного UI-режима.</small>
+                </div>
+            </section>
+        </div>
+    </section>
+
+    <section id="payments" class="tab-content">
+        <div class="card full-width">
+            <h3>История платежей</h3>
+            <p>Отказов от импульсивных покупок: <strong th:text="${dashboard.avoidedImpulseCount}"></strong></p>
+            <p>Сэкономлено на отменённых покупках: <strong th:text="${dashboard.avoidedImpulseAmount} + ' ₽'"></strong></p>
+            <form method="post" action="/app/sync-history" class="inline-form" style="margin:8px 0 14px;">
+                <button type="submit">Подтянуть историю из других банков</button>
+            </form>
+            <ul class="trx-list">
+                <li th:each="trx : ${dashboard.recentTransactions}">
+                    <span th:text="${trx.title} + ' (' + ${trx.category} + ', ' + ${trx.sourceType} + ')' "></span>
+                    <strong th:text="${trx.amount} + ' ₽'"></strong>
+                </li>
+            </ul>
+        </div>
+    </section>
+</div>
+
+<div class="agent-modal" th:if="${showAgentPopup}">
+    <div class="agent-modal-card">
+        <div class="agent-emoji" th:text="${confirmSeverity == 'HARD'} ? '😡' : (${confirmSeverity == 'MEDIUM'} ? '😠' : '🙂')"></div>
+        <h2>Агент-предупреждение</h2>
+        <p class="agent-text" id="agentText" th:text="${confirmMessage}"></p>
+        <small>Покупка: <span th:text="${confirmCategory}"></span> • <span th:text="${confirmAmount} + ' ₽'"></span></small>
+        <div class="confirm-actions">
+            <form method="post" action="/app/pay/confirm">
+                <input type="hidden" name="title" th:value="${confirmTitle}"/>
+                <input type="hidden" name="amount" th:value="${confirmAmount}"/>
+                <input type="hidden" name="category" th:value="${confirmCategory}"/>
+                <input type="hidden" name="sourceType" th:value="${confirmSourceType}"/>
+                <button type="submit">Да, продолжить</button>
+            </form>
+            <form method="post" action="/app/pay/cancel">
+                <input type="hidden" name="amount" th:value="${confirmAmount}"/>
+                <button type="submit" class="cancel-gradient">Нет, отменить</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

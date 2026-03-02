@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#120018"/>
+    <title>Подтверждение платежа</title>
+    <link rel="manifest" href="/manifest.webmanifest"/>
+    <link rel="stylesheet" href="/css/style.css"/>
+    <script defer src="/js/theme.js"></script>
+</head>
+<body>
+<div class="container confirm-wrap">
+    <div class="card confirm-card">
+        <h2>⚠ Подтверждение риска (<span th:text="${confirmSeverity}"></span>)</h2>
+        <p th:text="${confirmMessage}"></p>
+        <p><b th:text="${confirmTitle}"></b> — <span th:text="${confirmAmount} + ' ₽' "></span> (<span th:text="${confirmCategory}"></span>)</p>
+
+        <div class="confirm-actions">
+            <form method="post" action="/app/pay/confirm">
+                <input type="hidden" name="title" th:value="${confirmTitle}"/>
+                <input type="hidden" name="amount" th:value="${confirmAmount}"/>
+                <input type="hidden" name="category" th:value="${confirmCategory}"/>
+                <input type="hidden" name="confirmed" value="true"/>
+                <button type="submit">Да, всё равно оплатить</button>
+            </form>
+            <form method="post" action="/app/pay/confirm">
+                <input type="hidden" name="title" th:value="${confirmTitle}"/>
+                <input type="hidden" name="amount" th:value="${confirmAmount}"/>
+                <input type="hidden" name="category" th:value="${confirmCategory}"/>
+                <input type="hidden" name="confirmed" value="false"/>
+                <button type="submit" class="danger">Нет, отменить</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
