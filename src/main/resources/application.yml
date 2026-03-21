@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:bankdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  h2:
+    console:
+      enabled: true
+
+server:
+  port: 8080
+
+app:
+  security:
+    card-encryption-key: bankpet-demo-key-2026
+  guardian:
+    blocked-categories: BETTING,SCAM,GAMBLING
+    risky-categories: GAMES,ALCOHOL,LUXURY,CRYPTO,OZON,WB,ВКУСНЯШКИ,CASINO
+
+# Для продакшена (пример):
+# spring:
+#   datasource:
+#     url: jdbc:postgresql://<host>:5432/bank_pet
+#     username: <user>
+#     password: <password>
+#   jpa:
+#     hibernate:
+#       ddl-auto: validate

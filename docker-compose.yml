@@ -1,0 +1,13 @@
+version: '3.9'
+services:
+  bank-pet:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bank-pet-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - CARD_ENCRYPTION_SECRET=${CARD_ENCRYPTION_SECRET:-dev-very-secret-key-32-bytes!!!!}
+    restart: unless-stopped
