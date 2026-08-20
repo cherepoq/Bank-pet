@@ -1,3 +1,7 @@
 .preview/
 target/
 *.log
+ codex/-rent-flow-j2zqn3
+.env
+=======
+main

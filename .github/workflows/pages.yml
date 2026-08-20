@@ -32,6 +32,7 @@ jobs:
           mkdir -p _site
           cp src/main/resources/templates/dashboard.html _site/index.html
           cp -R src/main/resources/static/. _site/
+          sed -i 's#"start_url": "/app"#"start_url": "./"#; s#"scope": "/"#"scope": "./"#; s#"src": "/icons/#"src": "./icons/#' _site/manifest.webmanifest
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload preview

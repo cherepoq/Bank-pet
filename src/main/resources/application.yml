@@ -14,13 +14,28 @@ spring:
 
 server:
   port: 8080
+  forward-headers-strategy: framework
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
 
 app:
+  android:
+    package-name: ${ANDROID_PACKAGE_NAME:app.rentflow.mobile}
+    certificate-sha256: ${ANDROID_CERT_SHA256:REPLACE_WITH_RELEASE_KEY_SHA256}
   security:
     card-encryption-key: bankpet-demo-key-2026
+    require-https: ${REQUIRE_HTTPS:false}
   guardian:
     blocked-categories: BETTING,SCAM,GAMBLING
     risky-categories: GAMES,ALCOHOL,LUXURY,CRYPTO,OZON,WB,ВКУСНЯШКИ,CASINO
+  media:
+    storage-path: ${MEDIA_STORAGE_PATH:./data/media}
+    encryption-key: ${MEDIA_ENCRYPTION_KEY:rentflow-local-development-key-change-me}
+    api-token: ${MEDIA_API_TOKEN:}
+    video-compression-enabled: ${VIDEO_COMPRESSION_ENABLED:true}
+    owner-quota-bytes: ${MEDIA_OWNER_QUOTA_BYTES:2147483648}
 
 # Для продакшена (пример):
 # spring:
@@ -31,3 +46,23 @@ app:
 #   jpa:
 #     hibernate:
 #       ddl-auto: validate
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+  h2:
+    console:
+      enabled: false
+
+server:
+  error:
+    include-message: never
