@@ -9,6 +9,7 @@ rm -rf "$PREVIEW_DIR"
 mkdir -p "$PREVIEW_DIR"
 cp "$ROOT_DIR/src/main/resources/templates/dashboard.html" "$PREVIEW_DIR/index.html"
 cp -R "$ROOT_DIR/src/main/resources/static/." "$PREVIEW_DIR/"
+sed -i 's#"start_url": "/app"#"start_url": "./"#; s#"scope": "/"#"scope": "./"#; s#"src": "/icons/#"src": "./icons/#' "$PREVIEW_DIR/manifest.webmanifest"
 
 echo "RentFlow preview: http://localhost:$PORT"
 echo "Press Ctrl+C to stop."

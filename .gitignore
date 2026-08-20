@@ -1,3 +1,4 @@
 .preview/
 target/
 *.log
+.env
