@@ -1,6 +1,6 @@
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open('bankpet-v1').then(cache => cache.addAll(['/app', '/css/style.css', '/js/theme.js']))
+    caches.open('rentflow-v2').then(cache => cache.addAll(['/app', '/css/style.css', '/js/theme.js']))
   );
 });
 
