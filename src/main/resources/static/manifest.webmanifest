@@ -1,14 +1,14 @@
 {
-  "name": "Bank Pet",
-  "short_name": "BankPet",
-  "description": "Demo banking app with Digital Ruble and AI Spending Guardian",
-  "start_url": "/app",
+  "name": "RentFlow — аренда под контролем",
+  "short_name": "RentFlow",
+  "description": "Сроки аренды, платежи и документы в одном защищённом приложении",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#120018",
-  "theme_color": "#120018",
+  "background_color": "#f6f8fb",
+  "theme_color": "#7457e8",
   "icons": [
     {
-      "src": "/icons/icon.svg",
+      "src": "./icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
