@@ -15,6 +15,16 @@
 
 ## Запуск
 
+### Быстрый просмотр только фронтенда
+
+Для этого варианта не нужны Java, Maven или Docker:
+
+```bash
+./scripts/static_preview.sh
+```
+
+Откройте `http://localhost:4173`. Другой порт можно указать так: `PORT=3000 ./scripts/static_preview.sh`.
+
 ### Docker
 
 ```bash
@@ -28,6 +38,17 @@
 ```bash
 ./scripts/local_preview.sh
 ```
+
+## Публичный preview через GitHub Pages
+
+В репозитории настроен workflow `.github/workflows/pages.yml`. После попадания изменений в ветку `main`:
+
+1. Откройте **Settings → Pages** в GitHub.
+2. В поле **Source** выберите **GitHub Actions**.
+3. Откройте **Actions → Deploy RentFlow preview to GitHub Pages** и дождитесь зелёного статуса.
+4. Ссылка появится на странице deployment и будет иметь вид `https://<username>.github.io/<repository>/`.
+
+Workflow также можно запустить вручную кнопкой **Run workflow**. Относительные пути ресурсов позволяют preview работать как в корне домена, так и в подпапке GitHub Pages.
 
 ## Архитектура
 

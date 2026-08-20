@@ -1,6 +1,6 @@
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open('rentflow-v2').then(cache => cache.addAll(['/app', '/css/style.css', '/js/theme.js']))
+    caches.open('rentflow-v3').then(cache => cache.addAll(['./', './css/style.css', './js/theme.js']))
   );
 });
 

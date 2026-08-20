@@ -66,5 +66,5 @@
     $('#recordButton').addEventListener('click', () => toast('Камера будет доступна в мобильном приложении'));
     $$('.play, .video-thumb i').forEach(button => button.addEventListener('click', () => toast('Запускаем видео…')));
 
-    if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+    if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 })();
