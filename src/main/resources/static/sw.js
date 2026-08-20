@@ -1,4 +1,4 @@
-const CACHE = 'rentflow-v9';
+const CACHE = 'rentflow-v10';
 const APP_SHELL = ['./css/style.css', './js/theme.js', './js/secure-storage.js', './icons/icon.svg'];
 
 self.addEventListener('install', event => {

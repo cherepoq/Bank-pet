@@ -22,6 +22,10 @@ test -f src/main/resources/static/sw.js
 echo "[4/6] Checking style and template presence"
 test -f src/main/resources/static/css/style.css
 test -f src/main/resources/templates/dashboard.html
+test "$(sed -n '1p' src/main/resources/static/css/style.css)" = ':root {'
+rg '^\.app-header \{' src/main/resources/static/css/style.css >/dev/null
+rg '^\.bottom-nav \{' src/main/resources/static/css/style.css >/dev/null
+rg 'css/style.css\?v=' src/main/resources/templates/dashboard.html >/dev/null
 test -f src/main/resources/static/privacy.html
 test -f src/main/resources/static/account-deletion.html
 rg 'RentFlow' android/scripts/.env.twa.example >/dev/null
