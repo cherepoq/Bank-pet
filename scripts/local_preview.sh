@@ -31,7 +31,7 @@ for i in {1..60}; do
 done
 
 printf '\n[4/4] Smoke HTTP checks\n'
-curl -fsS http://localhost:8080/app | rg -q "Bank Pet"
+curl -fsS http://localhost:8080/app | rg -q "RentFlow"
 curl -fsS http://localhost:8080/manifest.webmanifest | rg -q '"name"'
 echo "Smoke checks passed. Open: http://localhost:8080/app"
 

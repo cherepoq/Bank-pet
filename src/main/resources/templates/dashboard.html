@@ -1,138 +1,134 @@
-<!DOCTYPE html>
-<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<!doctype html>
+<html lang="ru">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <meta name="theme-color" content="#120018"/>
-    <title>Bank Pet Dashboard</title>
-    <link rel="manifest" href="/manifest.webmanifest"/>
-    <link rel="stylesheet" href="/css/style.css"/>
-    <script defer src="/js/theme.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0b9f68">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; block-all-mixed-content; default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
+    <title>RentFlow</title>
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="stylesheet" href="./css/style.css">
+    <script defer src="./js/secure-storage.js"></script>
+    <script defer src="./js/theme.js"></script>
 </head>
 <body>
-<div class="container">
-    <header class="header">
-        <div>
-            <h1>Bank Pet — Smart Banking</h1>
-            <p th:text="${dashboard.clientName} + ' • ' + ${dashboard.phone}"></p>
-        </div>
-        <div class="header-actions">
-            <span class="badge">ИИ-финконтроль включён</span>
-            <button id="themeToggle" class="theme-toggle" type="button">🌙 Тёмная тема</button>
-        </div>
+<svg class="icon-sprite" aria-hidden="true"><symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol><symbol id="i-rent" viewBox="0 0 24 24"><path d="M4 21V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16M8 7h2m4 0h2M8 11h2m4 0h2M8 15h2m4 0h2M2 21h20"/></symbol><symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6zM14 3v5h5M9 13h6m-6 4h6"/></symbol><symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="5" width="14" height="14" rx="3"/><path d="m17 10 4-2v8l-4-2z"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol><symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 13.5v-3l-2-.7-.7-1.7.9-1.9-2.1-2.1-1.9.9-1.7-.7L10.5 2h-3l-.7 2.3-1.7.7-1.9-.9-2.1 2.1L2 8.1l-.7 1.7L0 10.5v3l2 .7.7 1.7-.9 1.9 2.1 2.1 1.9-.9 1.7.7.7 2.3h3l.7-2.3 1.7-.7 1.9.9 2.1-2.1-.9-1.9.7-1.7z" transform="translate(2) scale(.83)"/></symbol><symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></symbol></svg>
+<div class="app">
+    <header class="app-header">
+        <button class="avatar" id="profileButton" aria-label="Профиль">А</button>
+        <div class="brand"><span class="brand-wave">⌁</span> RentFlow</div>
+        <div class="header-actions"><button id="previewSettings" aria-label="Настроить демо"><svg><use href="#i-settings"/></svg></button><button class="bell" aria-label="Уведомления"><svg><use href="#i-bell"/></svg><i></i></button></div>
     </header>
 
-    <div class="notice" th:if="${notice != null and !notice.isBlank()}" th:text="${notice}"></div>
+    <main>
+        <section class="screen active" data-screen="home">
+            <div class="hello"><div><p id="greeting">Добрый день, Алексей</p><span id="roleSubtitle">Ваши объекты под контролем</span></div><button class="role-pill" id="roleButton"><i></i><span id="roleText">Арендодатель</span><b>⌄</b></button></div>
 
-    <section class="summary-strip">
-        <div class="summary-item card-mini">
-            <span>Счёт</span>
-            <strong th:text="${dashboard.accountBalance} + ' ₽'"></strong>
-        </div>
-        <div class="summary-item card-mini" th:if="${!dashboard.cards.isEmpty()}">
-            <span>Карта</span>
-            <strong th:text="${dashboard.cards.get(0)}"></strong>
-        </div>
-        <div class="summary-item card-mini">
-            <span>Цифровой рубль</span>
-            <strong th:text="${dashboard.digitalRubleBalance} + ' ₽'"></strong>
-        </div>
-    </section>
+            <article class="hero-card" id="paymentCard" data-next-payment="2026-08-24">
+                <div class="hero-orb"></div><div class="hero-dots"></div>
+                <div class="hero-top"><span id="paymentCaption">БЛИЖАЙШЕЕ ПОСТУПЛЕНИЕ</span><button id="balanceToggle" aria-label="Скрыть сумму" aria-pressed="false">◉</button></div>
+                <div class="payment-focus">
+                    <div class="timer-wrap" role="timer" aria-label="До платежа 4 дня">
+                        <svg class="timer-ring" viewBox="0 0 120 120" aria-hidden="true">
+                            <circle class="timer-track" cx="60" cy="60" r="52"></circle>
+                            <circle class="timer-progress" id="timerProgress" cx="60" cy="60" r="52"></circle>
+                        </svg>
+                        <div class="timer-value"><b id="days">4</b><span id="daysWord">дня</span><small>до платежа</small></div>
+                    </div>
+                    <div class="payment-amount"><span id="amountLabel">К ПОЛУЧЕНИЮ</span><strong id="paymentAmount">45 000 <small>₽</small></strong><p>Студия у метро Динамо</p></div>
+                </div>
+                <div class="payment-meta">
+                    <div><span>Дата платежа</span><b id="paymentDate">24 августа</b></div>
+                    <div><span id="partyLabel">Арендатор</span><b id="partyName">Мария Соколова</b></div>
+                    <button id="payButton">Подтвердить получение</button>
+                </div>
+                <div class="manual-payment-note"><i>✓</i><span>RentFlow только ведёт учёт — перевод денег происходит вне приложения</span></div>
+            </article>
 
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="home">Главная</button>
-        <button class="tab-btn" data-tab="payments">Платежи</button>
-    </div>
-
-    <section id="home" class="tab-content active">
-        <section class="grid">
-            <div class="card">
-                <h3>Счёт</h3>
-                <p class="amount" th:text="${dashboard.accountBalance} + ' ₽'"></p>
-                <small>Основной рублёвый счёт</small>
+            <div class="quick-actions">
+                <button data-action="add"><i>＋</i><span>Добавить<br>аренду</span></button>
+                <button data-action="payment"><i>₽</i><span>Учесть<br>оплату</span></button>
+                <button data-action="upload"><i>⇧</i><span>Загрузить<br>документ</span></button>
+                <button data-go="video"><i>▷</i><span>Видео<br>объекта</span></button>
             </div>
 
-            <div class="card accent">
-                <h3>Цифровой рубль</h3>
-                <p class="amount" th:text="${dashboard.digitalRubleBalance} + ' ₽'"></p>
-                <p th:text="${dashboard.digitalRubleLinked} ? 'Кошелёк привязан' : 'Кошелёк не привязан'"></p>
-                <form th:if="${!dashboard.digitalRubleLinked}" method="post" action="/app/link">
-                    <button type="submit">Привязать кошелёк</button>
-                </form>
-                <form th:if="${dashboard.digitalRubleLinked}" method="post" action="/app/topup" class="inline-form">
-                    <input type="number" name="amount" step="0.01" min="1" value="500"/>
-                    <button type="submit">Пополнить</button>
-                </form>
+            <div class="section-title"><div><h2>Моя аренда</h2><p>3 активных объекта</p></div><button data-go="rent">Все</button></div>
+            <div class="rent-slider">
+                <article class="rent-card" data-id="1"><div class="rent-photo room-one"><span class="tag">Долгосрочно</span><button>♡</button></div><div class="rent-body"><h3>Студия у метро Динамо</h3><p>Ленинградский проспект, 33</p><div><strong>45 000 ₽ <small>/ мес.</small></strong><span class="ok">Оплачено</span></div></div></article>
+                <article class="rent-card" data-id="2"><div class="rent-photo room-two"><span class="tag daily">Посуточно</span><button>♡</button></div><div class="rent-body"><h3>Апартаменты «Сити»</h3><p>Пресненская набережная, 12</p><div><strong>7 500 ₽ <small>/ сутки</small></strong><span class="booked">Занято</span></div></div></article>
             </div>
 
-
-            <div class="card full-width quick-start-card">
-                <h3>Лёгкий запуск</h3>
-                <p>Выберите удобный вариант: сайт локально, Docker или подготовка к Google Play.</p>
-                <ul class="quick-start-list">
-                    <li><strong>Локально:</strong> <code>./scripts/local_preview.sh</code></li>
-                    <li><strong>Docker:</strong> <code>./scripts/run_docker.sh</code></li>
-                    <li><strong>Play (Internal):</strong> <code>cd android/scripts && ./build_twa.sh</code></li>
-                </ul>
-            </div>
-            <div class="card payment-card full-width">
-                <h3>Новая покупка</h3>
-                <form method="post" action="/app/pay" class="payment-form">
-                    <select name="category" required>
-                        <option value="BETTING">Betting</option>
-                        <option value="OZON">OZON</option>
-                        <option value="WB">WB</option>
-                        <option value="CASINO">Casino</option>
-                        <option value="ВКУСНЯШКИ">Вкусняшки</option>
-                    </select>
-                    <input type="number" name="amount" required step="0.01" min="1" placeholder="Сумма"/>
-                    <button type="submit">Оплатить</button>
-                </form>
-                <small>NFC-обертка работает под капотом, без отдельного UI-режима.</small>
-            </div>
+            <div class="section-title"><div><h2>События</h2><p>На этой неделе</p></div></div>
+            <section class="events">
+                <div><i class="event-icon green">✓</i><span><strong>Платёж получен</strong><small>Квартира на Патриарших · сегодня</small></span><b class="income">+85 000 ₽</b></div>
+                <div><i class="event-icon purple">▤</i><span><strong>Договор скоро истекает</strong><small>Осталось 12 дней</small></span><b>→</b></div>
+            </section>
         </section>
-    </section>
 
-    <section id="payments" class="tab-content">
-        <div class="card full-width">
-            <h3>История платежей</h3>
-            <p>Отказов от импульсивных покупок: <strong th:text="${dashboard.avoidedImpulseCount}"></strong></p>
-            <p>Сэкономлено на отменённых покупках: <strong th:text="${dashboard.avoidedImpulseAmount} + ' ₽'"></strong></p>
-            <form method="post" action="/app/sync-history" class="inline-form" style="margin:8px 0 14px;">
-                <button type="submit">Подтянуть историю из других банков</button>
-            </form>
-            <ul class="trx-list">
-                <li th:each="trx : ${dashboard.recentTransactions}">
-                    <span th:text="${trx.title} + ' (' + ${trx.category} + ', ' + ${trx.sourceType} + ')' "></span>
-                    <strong th:text="${trx.amount} + ' ₽'"></strong>
-                </li>
-            </ul>
-        </div>
-    </section>
+        <section class="screen" data-screen="rent">
+            <div class="page-heading"><div><h1>Аренда</h1><p>Объекты и платежи</p></div><button class="round-add" data-action="add">＋</button></div>
+            <div class="segmented"><button class="active">Все</button><button>Долгосрочно</button><button>Посуточно</button></div>
+            <div class="stats-row"><div><span>Доход в августе</span><strong>112 500 ₽</strong><small>↗ 8,4% за месяц</small></div><div><span>Заполняемость</span><strong>87%</strong><small>26 из 30 дней</small></div></div>
+            <section class="finance-overview">
+                <div class="finance-head"><div><span>Чистый результат · август</span><strong>+78 200 ₽</strong></div><span class="positive">↗ 12%</span></div>
+                <div class="finance-bar" aria-label="Доходы 112 500 рублей, расходы 34 300 рублей"><i style="width:76%"></i><b style="width:24%"></b></div>
+                <div class="finance-legend"><span><i class="income-dot"></i>Доходы <b>112 500 ₽</b></span><span><i class="expense-dot"></i>Расходы <b>34 300 ₽</b></span></div>
+            </section>
+            <div class="finance-grid">
+                <section class="finance-card"><div class="card-heading"><h2>Доходы</h2><b>112 500 ₽</b></div><div class="category"><i class="cat-rent">⌂</i><span><strong>Долгосрочная аренда</strong><small>2 объекта</small></span><b>85 000 ₽</b></div><div class="category"><i class="cat-daily">◫</i><span><strong>Посуточная аренда</strong><small>7 ночей</small></span><b>27 500 ₽</b></div></section>
+                <section class="finance-card"><div class="card-heading"><h2>Расходы</h2><b>34 300 ₽</b></div><div class="category"><i class="cat-utility">⌁</i><span><strong>Коммунальные услуги</strong><small>Свет, вода, интернет</small></span><b>18 600 ₽</b></div><div class="category"><i class="cat-repair">◇</i><span><strong>Ремонт и уборка</strong><small>2 операции</small></span><b>10 200 ₽</b></div><div class="category"><i class="cat-tax">%</i><span><strong>Налоги</strong><small>Самозанятость</small></span><b>5 500 ₽</b></div></section>
+            </div>
+            <section class="obligations"><div class="card-heading"><div><h2>Обязательные платежи</h2><p>До конца августа</p></div><b>24 100 ₽</b></div><div><span><i>25</i><strong>Коммунальные услуги<small>3 объекта</small></strong></span><b>18 600 ₽</b></div><div><span><i>28</i><strong>Налог для самозанятых<small>Август 2026</small></strong></span><b>5 500 ₽</b></div></section>
+            <div id="fullRentList" class="full-list"></div>
+        </section>
+
+        <section class="screen" data-screen="files">
+            <div class="page-heading"><div><h1>Файлы</h1><p>AES-256-GCM · хранятся на устройстве</p></div><button class="round-add" data-action="upload">⇧</button></div>
+            <div class="storage-card"><i>✓</i><div><span>Защищённое хранилище</span><strong>1,2 ГБ из 10 ГБ</strong><b><em></em></b></div></div>
+            <label class="file-search">⌕<input id="fileSearch" placeholder="Поиск по документам"></label>
+            <div class="file-filters"><button class="active">Все</button><button>Договоры</button><button>Акты</button><button>Чеки</button></div>
+            <div class="upload-zone" data-action="upload"><i>⇧</i><div><strong>Загрузить документы</strong><small>Изображения автоматически сжимаются, затем шифруются</small></div></div><div class="files" id="fileList">
+                <article data-name="Договор аренды Патриаршие"><i class="pdf">PDF</i><span><strong>Договор аренды</strong><small>Патриаршие · 2,4 МБ</small></span><time>12 авг.</time><button>•••</button></article>
+                <article data-name="Акт приёма-передачи"><i class="doc">DOC</i><span><strong>Акт приёма-передачи</strong><small>Студия Динамо · 860 КБ</small></span><time>8 авг.</time><button>•••</button></article>
+                <article data-name="Чек оплата август"><i class="img">JPG</i><span><strong>Чек об оплате · август</strong><small>Апартаменты Сити · 1,1 МБ</small></span><time>1 авг.</time><button>•••</button></article>
+            </div>
+            <input type="file" id="fileInput" hidden multiple>
+        </section>
+
+        <section class="screen" data-screen="video">
+            <div class="page-heading"><div><h1>Видео</h1><p>Зашифрованная видеофиксация</p></div><button class="round-add" id="recordButton">＋</button></div>
+            <article class="video-hero room-three"><button class="play">▶</button><div><span>ПОСЛЕДНИЙ ОСМОТР</span><h2>Апартаменты «Сити»</h2><p>18 августа · 02:34</p></div></article>
+            <h2 class="subheading">Все видео</h2>
+            <div class="video-grid"><article><div class="video-thumb room-one"><i>▶</i><time>01:48</time></div><h3>До заселения</h3><p>Студия Динамо · 14 авг.</p></article><article><div class="video-thumb room-two"><i>▶</i><time>03:12</time></div><h3>После уборки</h3><p>Патриаршие · 10 авг.</p></article></div>
+            <div class="video-tip"><i>✦</i><div><strong>Совет RentFlow</strong><p>Снимайте объект до и после заселения. Видео с датой поможет защитить ваши интересы.</p></div></div>
+            <label class="video-upload"><input id="videoInput" type="file" accept="video/*" hidden><i>＋</i><span><strong>Добавить видеоосмотр</strong><small>До 100 МБ · файл будет зашифрован</small></span></label>
+        </section>
+
+        <section class="screen" data-screen="profile">
+            <div class="profile-hero"><div class="large-avatar">АМ</div><h1>Алексей Морозов</h1><p>alexey@example.ru</p><span>✓ Профиль подтверждён</span></div>
+            <div class="settings-list"><button id="profileRole"><i>♙</i><span><strong>Режим приложения</strong><small id="profileRoleText">Арендодатель</small></span><b>›</b></button><button><i>♧</i><span><strong>Безопасность</strong><small>Вход и шифрование</small></span><b>›</b></button><button><i>♢</i><span><strong>Уведомления</strong><small>Платежи и сроки</small></span><b>›</b></button><button><i>?</i><span><strong>Помощь</strong><small>Ответим на вопросы</small></span><b>›</b></button></div>
+        </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Разделы приложения">
+        <button class="active" data-go="home"><svg><use href="#i-home"/></svg><span>Главная</span></button>
+        <button data-go="rent"><svg><use href="#i-rent"/></svg><span>Аренда</span></button>
+        <button data-go="files"><svg><use href="#i-file"/></svg><span>Файлы</span><b>3</b></button>
+        <button data-go="video"><svg><use href="#i-video"/></svg><span>Видео</span></button>
+        <button data-go="profile"><svg><use href="#i-user"/></svg><span>Профиль</span></button>
+    </nav>
 </div>
 
-<div class="agent-modal" th:if="${showAgentPopup}">
-    <div class="agent-modal-card">
-        <div class="agent-emoji" th:text="${confirmSeverity == 'HARD'} ? '😡' : (${confirmSeverity == 'MEDIUM'} ? '😠' : '🙂')"></div>
-        <h2>Агент-предупреждение</h2>
-        <p class="agent-text" id="agentText" th:text="${confirmMessage}"></p>
-        <small>Покупка: <span th:text="${confirmCategory}"></span> • <span th:text="${confirmAmount} + ' ₽'"></span></small>
-        <button id="voiceCommandBtn" type="button">🎤 Голосовая команда</button>
-        <p id="voiceStatus"><small>Можно сказать: "оплатить" или "отмена"</small></p>
-        <div class="confirm-actions">
-            <form method="post" action="/app/pay/confirm">
-                <input type="hidden" name="title" th:value="${confirmTitle}"/>
-                <input type="hidden" name="amount" th:value="${confirmAmount}"/>
-                <input type="hidden" name="category" th:value="${confirmCategory}"/>
-                <input type="hidden" name="sourceType" th:value="${confirmSourceType}"/>
-                <button id="confirmPayBtn" type="submit">Да, продолжить</button>
-            </form>
-            <form method="post" action="/app/pay/cancel">
-                <input type="hidden" name="amount" th:value="${confirmAmount}"/>
-                <button id="cancelPayBtn" type="submit" class="cancel-gradient">Нет, отменить</button>
-            </form>
-        </div>
-    </div>
-</div>
+<div class="sheet-backdrop" id="roleSheet" hidden><section class="sheet"><i class="grabber"></i><h2>Выберите режим</h2><p>Интерфейс и подсказки настроятся под вас</p><button class="role-option selected" data-role="landlord"><i>⌂</i><span><strong>Я арендодатель</strong><small>Сдаю объекты и принимаю платежи</small></span><b>✓</b></button><button class="role-option" data-role="tenant"><i>♙</i><span><strong>Я арендатор</strong><small>Снимаю жильё и оплачиваю аренду</small></span><b></b></button><div class="security-note">♧ Данные защищены сквозным шифрованием</div></section></div>
+
+<div class="sheet-backdrop" id="addSheet" hidden><form class="sheet form-sheet" id="rentForm"><button class="sheet-close" type="button">×</button><i class="grabber"></i><h2>Новая аренда</h2><p>Добавьте объект за пару минут</p><label>Название<input name="name" required placeholder="Например, студия у метро"></label><label>Адрес<input name="address" required placeholder="Город, улица, дом"></label><div class="form-grid"><label>Тип<select name="type"><option>Долгосрочно</option><option>Посуточно</option></select></label><label>Сумма, ₽<input name="price" required type="number" min="1" placeholder="45 000"></label></div><label>Дата следующего платежа<input name="date" type="date"></label><button class="submit" type="submit">Добавить аренду</button></form></div>
+
+<div class="sheet-backdrop" id="previewSheet" hidden><form class="sheet form-sheet preview-sheet" id="previewForm"><button class="preview-close sheet-close" type="button">×</button><i class="grabber"></i><div class="preview-badge">РЕЖИМ ДЕМО</div><h2>Настроить экран</h2><p>Изменения применяются сразу и сохраняются только в этом браузере</p><div class="form-grid"><label>Сумма аренды, ₽<input id="demoAmount" type="number" min="1" value="45000"></label><label>Дней до платежа<input id="demoDays" type="number" min="0" max="365" value="4"></label></div><label>Имя объекта<input id="demoProperty" value="Студия у метро Динамо"></label><label>Основной цвет<div class="color-control"><input id="demoColor" type="color" value="#0ca56d"><output id="demoColorValue">#0ca56d</output></div></label><div class="preview-actions"><button class="reset-preview" id="resetPreview" type="button">Сбросить</button><button class="submit" type="submit">Готово</button></div><div class="share-note">Чтобы показать результат другому человеку, опубликуйте ветку через GitHub Pages — инструкция находится в README.</div></form></div>
+
+<div class="sheet-backdrop" id="paymentSheet" hidden><form class="sheet form-sheet payment-sheet" id="paymentForm"><button class="payment-close sheet-close" type="button">×</button><i class="grabber"></i><div class="preview-badge">РУЧНОЙ УЧЁТ</div><h2 id="paymentSheetTitle">Подтвердить получение</h2><p>Деньги не переводятся через RentFlow. Добавьте запись и при необходимости приложите чек.</p><div class="payment-balance"><span>Осталось по аренде</span><strong id="sheetOutstanding">45 000 ₽</strong></div><label>Сумма операции, ₽<input id="operationAmount" required type="number" min="1" step="0.01" value="45000"></label><fieldset class="operation-kind"><legend>Что сделать с суммой</legend><label><input type="radio" name="operationKind" value="payment" checked><span><i>−</i><strong>Учесть оплату<small>Уменьшить остаток</small></strong></span></label><label><input type="radio" name="operationKind" value="charge"><span><i>＋</i><strong>Добавить начисление<small>Увеличить остаток</small></strong></span></label></fieldset><label>Комментарий<input id="operationComment" maxlength="120" placeholder="Например, частичная оплата"></label><label class="receipt-picker"><input id="receiptInput" type="file" accept="image/*,.pdf" hidden><i>▤</i><span><strong id="receiptLabel">Приложить чек</strong><small>PDF, JPG или PNG · файл будет зашифрован</small></span><b>＋</b></label><button class="submit" type="submit">Сохранить операцию</button><div class="operation-history"><h3>История по платежу</h3><div id="operationList"><p>Операций пока нет</p></div></div></form></div>
+
+<div class="toast" id="toast"><i>✓</i><span>Готово</span></div>
+<aside class="premium-slot"><span>PRO</span><div><strong>RentFlow Premium</strong><small>Автоматические напоминания, аналитика и больше места</small></div><button>Скоро</button></aside>
 </body>
 </html>
