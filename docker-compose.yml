@@ -1,13 +1,59 @@
 version: '3.9'
 services:
-  bank-pet:
+  rentflow-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: rentflow
+      POSTGRES_USER: rentflow
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-rentflow-local-password}
+    volumes:
+      - rentflow-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rentflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  rentflow:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: bank-pet-app
+    container_name: rentflow-app
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=default
-      - CARD_ENCRYPTION_SECRET=${CARD_ENCRYPTION_SECRET:-dev-very-secret-key-32-bytes!!!!}
+      - SPRING_PROFILES_ACTIVE=prod
+      - DATABASE_URL=jdbc:postgresql://rentflow-db:5432/rentflow
+      - DATABASE_USERNAME=rentflow
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-rentflow-local-password}
+      - MEDIA_STORAGE_PATH=/data/media
+      - MEDIA_ENCRYPTION_KEY=${MEDIA_ENCRYPTION_KEY:?Set MEDIA_ENCRYPTION_KEY}
+      - MEDIA_API_TOKEN=${MEDIA_API_TOKEN:?Set MEDIA_API_TOKEN}
+      - ANDROID_CERT_SHA256=${ANDROID_CERT_SHA256:-REPLACE_WITH_RELEASE_KEY_SHA256}
+      - REQUIRE_HTTPS=${REQUIRE_HTTPS:-true}
+    volumes:
+      - rentflow-media:/data/media
+    depends_on:
+      rentflow-db:
+        condition: service_healthy
     restart: unless-stopped
+  caddy:
+    image: caddy:2.8-alpine
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+    profiles: ["edge"]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - rentflow
+    restart: unless-stopped
+volumes:
+  rentflow-db:
+  rentflow-media:
+  caddy-data:
+  caddy-config:

@@ -1,10 +1,12 @@
-# Google Play checklist (Bank Pet)
+# Google Play checklist (RentFlow)
 
 ## 1) Technical artifacts
 - [ ] Signed `.aab` bundle
 - [ ] Version code and version name updated
 - [ ] Privacy policy URL published
 - [ ] Contact email set
+- [ ] `assetlinks.json` published at `/.well-known/assetlinks.json`
+- [ ] Encrypted media upload tested on a physical Android device
 
 ## 2) Play Console setup
 - [ ] App created in Play Console
@@ -23,3 +25,4 @@
 - [ ] Internal testing release
 - [ ] Closed testing release
 - [ ] Production rollout
+- [ ] Staged rollout starts at 10% and crash/ANR metrics are monitored

@@ -1,56 +1,18 @@
-# Android / Google Play plan for Bank Pet
+# RentFlow для Google Play
 
-Публикация идёт через **TWA (Trusted Web Activity)** — это быстрый и практичный путь для web-first приложения.
+Первый Android-релиз использует Trusted Web Activity. Это позволяет выпустить текущий PWA как `.aab`, а позже заменить оболочку на .NET MAUI без изменения серверного API.
 
-## Как убедиться, что всё работает до загрузки в Play
-1. Запусти локальный pre-release check:
-   ```bash
-   cd android/scripts
-   ./pre_release_check.sh
-   ```
-2. Быстрый автоматический прогон (рекомендуется):
-   ```bash
-   ./scripts/local_preview.sh
-   ```
-3. Или подними приложение локально вручную:
-   ```bash
-   mvn spring-boot:run
-   ```
-4. Пройди ручной smoke-check в UI:
-   - открыть `/app`;
-   - создать покупку по каждой ключевой категории;
-   - проверить popup агента (emoji + текст + кнопки);
-   - проверить вкладку `Платежи` и счетчики отказов/суммы;
-   - проверить цифровой рубль (link + topup).
-5. Разверни staging по HTTPS.
-6. Собери TWA и загрузи в **Internal testing** в Play Console.
-7. Пройди тестовый прогон на реальном Android-устройстве.
+## Подготовка
 
-## Быстрый старт сборки TWA
-1. Подготовь `assetlinks.json` по шаблону `android/playstore/assetlinks.json.template`.
-2. Установи Bubblewrap:
-   ```bash
-   npm i -g @bubblewrap/cli
-   ```
-3. Заполни env:
-   ```bash
-   cp android/scripts/.env.twa.example android/scripts/.env.twa
-   ```
-4. Собери обертку:
-   ```bash
-   cd android/scripts
-   ./build_twa.sh
-   ```
+1. Разверните production по HTTPS и проверьте `/app`, `/manifest.webmanifest`, `/privacy.html` и `/api/media`.
+2. Опубликуйте `assetlinks.json` по адресу `https://<domain>/.well-known/assetlinks.json`.
+3. Установите Bubblewrap: `npm i -g @bubblewrap/cli`.
+4. Скопируйте `android/scripts/.env.twa.example` в `.env.twa` и заполните домен.
+5. Выполните `android/scripts/pre_release_check.sh`.
+6. Выполните `cd android/scripts && ./build_twa.sh`.
 
-## Что получится
-- Android bundle (`.aab`) для загрузки в Google Play.
-- Чеклист публикации: `android/playstore/store-listing-checklist.md`.
+Полученный `.aab` сначала загружается в Internal testing, затем в Closed testing. Перед production заполните Data safety, privacy policy, content rating и store listing checklist.
 
+## Ограничения первого релиза
 
-## Откуда брать URL для Play/TWA
-Перед сборкой TWA нужен публичный HTTPS URL приложения. Самые простые варианты:
-- Render (рекомендуется, есть `render.yaml`),
-- Railway,
-- любой VPS с Nginx + Docker.
-
-После деплоя подставьте этот URL в `android/scripts/.env.twa`.
+TWA требует доступного HTTPS-сервера. Загрузка видео выполняется сервером и может продолжаться только пока web-клиент активен. Для гарантированной фоновой загрузки, Android Keystore, push и камеры следующим этапом предусмотрен клиент .NET MAUI.
